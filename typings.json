@@ -7,5 +7,11 @@
     "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#d6dd320291705694ba8e1a79497a908e9f5e6617",
     "sprintf-js": "github:DefinitelyTyped/DefinitelyTyped/sprintf-js/sprintf-js.d.ts#147380f9d1255f779806270d80eea85e2c1af55f",
     "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#138ad74b9e8e6c08af7633964962835add4c91e2"
+  },
+  "globalDependencies": {
+    "colors": "registry:dt/colors#0.6.0-1+20160501135139",
+    "diff": "registry:dt/diff#0.0.0+20160318080727",
+    "glob": "registry:dt/glob#5.0.10+20160317120654",
+    "minimatch": "registry:dt/minimatch#2.0.8+20160317120654"
   }
 }
