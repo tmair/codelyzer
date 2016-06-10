@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {getRulesDirectories} from './configuration';
+import {getRulesDirectories} from './utils';
 import {IRule, IDisabledInterval} from './language/rule/rule';
 
 const camelize = require('underscore.string').camelize;
@@ -12,7 +12,7 @@ export interface IEnableDisablePosition {
 
 export function loadRules(ruleConfiguration: {[name: string]: any},
               enableDisableRuleMap: {[rulename: string]: IEnableDisablePosition[]},
-              rulesDirectories?: string | string[]): IRule[] {
+              rulesDirectories?: string[]): IRule[] {
   const rules: IRule[] = [];
   const notFoundRules: string[] = [];
 
@@ -64,19 +64,19 @@ export function findRule(name: string, rulesDirectories?: string | string[]) {
 
 function transformName(name: string) {
   const nameMatch = name.match(/^([-_]*)(.*?)([-_]*)$/);
-  if (nameMatch == null) {
-    return name + 'Rule';
+  let result = name;
+  if (nameMatch !== null) {
+    result = nameMatch[1] + camelize(nameMatch[2]) + nameMatch[3];
   }
-  return nameMatch[1] + camelize(nameMatch[2]) + nameMatch[3] + 'Rule';
+  return result[0].toUpperCase() + result.substring(1, name.length);
 }
 
 function loadRule(directory: string, ruleName: string) {
-  const fullPath = path.join(directory, ruleName);
-
-  if (fs.existsSync(fullPath + '.js')) {
-    const ruleModule = require(fullPath);
+  if (fs.existsSync(directory)) {
+    const ruleModule = require(directory);
     if (ruleModule) {
       return ruleModule.filter(rule => {
+        console.log(rule.name, ruleName);
         if (rule.name === ruleName) {
           return true;
         }

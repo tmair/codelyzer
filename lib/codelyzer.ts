@@ -28,10 +28,15 @@ export class Codelyzer {
       ruleName: '',
     });
     rulesWalker.walk(sourceFile);
+
     const enableDisableRuleMap = rulesWalker.enableDisableRuleMap;
 
     const configuration = this.options.rules_config;
-    const configuredRules = [new ImportDestructuringSpacing('import-destructuring-spacing', true, [])];
+    const configuredRules = loadRules(configuration,
+        enableDisableRuleMap,
+        this.options.rules_directories
+      );
+    //[new ImportDestructuringSpacing('import-destructuring-spacing', true, [])];
     const enabledRules = configuredRules.filter((r) => r.isEnabled());
     for (let rule of enabledRules) {
       const ruleMatches = rule.apply(sourceFile);

@@ -1,7 +1,7 @@
-import {Replacement} from './src/base/language/rule/fix';
-import {Codelyzer} from './src/base/codelyzer';
+import {Replacement} from './language/rule/fix';
+import {Codelyzer} from './codelyzer';
 
-let sf = `import {Input, Output, Component} form '@angular/core';
+const sf = `import {Input, Output, Component} form '@angular/core';
 
 @Component({
   selector: 'codelyzer-tabs',
@@ -11,9 +11,16 @@ class TabsComponent {
   //...
 }
 `
-const codelyzer = new Codelyzer('file.ts', sf, {});
+
+const codelyzer = new Codelyzer('file.ts', sf, {
+  rules_config: {
+    'import-destructuring-spacing': true
+  },
+  rules_directories: ['./rules']
+});
 
 const generator = codelyzer.process();
+
 let next;
 let fixed;
 

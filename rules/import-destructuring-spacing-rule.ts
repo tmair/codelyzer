@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
 import * as Lint from 'tslint/lib/lint';
-import {AbstractRule} from '../base/language/rule/abstract-rule';
-import {RefactorRuleWalker} from '../base/language/walker/refactor-rule-walker';
-import {Match} from '../base/language/rule/match';
-import {Fix} from '../base/language/rule/fix';
+import {AbstractRule} from '../lib/language/rule/abstract-rule';
+import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
+import {Match} from '../lib/language/rule/match';
+import {Fix} from '../lib/language/rule/fix';
 
 export class ImportDestructuringSpacing extends AbstractRule {
   public static FAILURE_STRING = 'You need to leave whitespaces inside of the import statement\'s curly braces ($$03-05$$)';

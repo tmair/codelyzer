@@ -16,7 +16,7 @@
  */
 
 import * as ts from 'typescript';
-import {IOptions} from '../../lint';
+import {IOptions} from '../../config';
 import {RefactorRuleWalker} from './refactor-rule-walker';
 
 export class SkippableTokenAwareRuleWalker extends RefactorRuleWalker {

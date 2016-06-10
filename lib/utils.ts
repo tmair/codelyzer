@@ -88,8 +88,6 @@ import * as path from "path";
 const findup = require('findup-sync');
 const resolve = require('resolve');
 
-import {arrayify, objectify, stripComments} from "./utils";
-
 export interface IConfigurationFile {
     rulesDirectory?: string | string[];
     rules?: any;

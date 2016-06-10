@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import {Fix} from '../rule/fix';
-import {IOptions} from '../../lint';
+import {IOptions} from '../../config';
 import {IDisabledInterval} from '../rule/rule';
 import {doesIntersect} from '../utils';
 import {SyntaxWalker} from './syntax-walker';

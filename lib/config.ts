@@ -9,7 +9,6 @@ export * from './language/utils';
 export * from './language/language-service-host';
 export * from './language/walker';
 
-export var Configuration = configuration;
 export var Linter = linter;
 export var Rules = rules;
 export var Test = test;

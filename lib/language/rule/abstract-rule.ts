@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import {Match} from './match';
 import {RefactorRuleWalker} from '../walker/refactor-rule-walker';
-import {IOptions} from '../../lint';
+import {IOptions} from '../../config';
 import {IRule, IDisabledInterval} from './rule';
 
 export abstract class AbstractRule implements IRule {
