@@ -15,5 +15,6 @@
  */
 
 export function replicateStr(str: string, numTimes: number) {
-    return Array(numTimes + 1).join(str);
+  return Array(numTimes + 1).join(str);
 }
+

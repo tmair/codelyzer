@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-export * from "./language/rule/abstractRule";
+export * from "./language/rule/abstract-rule";
+

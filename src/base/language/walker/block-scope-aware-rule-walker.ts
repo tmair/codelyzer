@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript";
-import {ScopeAwareRuleWalker} from "./scopeAwareRuleWalker";
+import * as ts from 'typescript';
+import {ScopeAwareRuleWalker} from './scope-aware-rule-walker';
 
 /**
  * An AST walker that is aware of block scopes in addition to regular scopes. Block scopes

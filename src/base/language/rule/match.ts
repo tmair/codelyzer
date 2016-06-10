@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import {Fix} from './fix';
 
-export class RuleFailurePosition {
+export class MatchPosition {
   private position: number;
   private lineAndCharacter: ts.LineAndCharacter;
 
@@ -18,7 +18,7 @@ export class RuleFailurePosition {
     return this.lineAndCharacter;
   }
 
-  public toJson() {
+  public toJS() {
     return {
       character: this.lineAndCharacter.character,
       line: this.lineAndCharacter.line,
@@ -26,7 +26,7 @@ export class RuleFailurePosition {
     };
   }
 
-  public equals(ruleFailurePosition: RuleFailurePosition) {
+  public equals(ruleFailurePosition: MatchPosition) {
     const ll = this.lineAndCharacter;
     const rr = ruleFailurePosition.lineAndCharacter;
 
@@ -38,37 +38,27 @@ export class RuleFailurePosition {
 
 
 export class Match {
-  fixes: Fix[];
-  sourceFile: ts.SourceFile;
-  fileName: string;
-  startPosition: RuleFailurePosition;
-  endPosition: RuleFailurePosition;
-  failure: string;
-  ruleName: string;
+  startPosition: MatchPosition;
+  endPosition: MatchPosition;
 
-  constructor(fixes: Fix[],
-              sourceFile: ts.SourceFile,
-              start: number,
-              end: number,
-              failure: string,
-              ruleName: string) {
-      this.fixes = fixes;
-      this.sourceFile = sourceFile;
-      this.fileName = sourceFile.fileName;
+  constructor(private fixes: Fix[],
+              private sourceFile: ts.SourceFile,
+              private start: number,
+              private end: number,
+              private failure: string,
+              private ruleName: string) {
       this.startPosition = this.createFailurePosition(start);
       this.endPosition = this.createFailurePosition(end);
-      this.failure = failure;
-      this.ruleName = ruleName;
   }
   private createFailurePosition(position: number) {
-      const lineAndCharacter = this.sourceFile.getLineAndCharacterOfPosition(position);
-      return new RuleFailurePosition(position, lineAndCharacter);
+    const lineAndCharacter = this.sourceFile.getLineAndCharacterOfPosition(position);
+    return new MatchPosition(position, lineAndCharacter);
   }
-  public getStartPosition(): RuleFailurePosition {
+  public getStartPosition(): MatchPosition {
     return this.startPosition;
   }
 
-  public getEndPosition(): RuleFailurePosition {
+  public getEndPosition(): MatchPosition {
     return this.endPosition;
   }
 
@@ -80,6 +70,10 @@ export class Match {
     return this.failure === match.failure &&
       this.startPosition.equals(match.startPosition) &&
       this.endPosition.equals(match.endPosition);
+  }
+
+  public hasFix() {
+    return this.fixes && this.fixes.length > 0;
   }
 }
 

@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as Lint from 'tslint/lib/lint';
-import {AbstractRule} from '../base/language/rule/abstractRule';
-import {RefactorRuleWalker} from '../base/language/walker/refactorRuleWalker';
+import {AbstractRule} from '../base/language/rule/abstract-rule';
+import {RefactorRuleWalker} from '../base/language/walker/refactor-rule-walker';
 import {Match} from '../base/language/rule/match';
 import {Fix} from '../base/language/rule/fix';
 
@@ -22,22 +22,30 @@ class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
     this.scanner = ts.createScanner(ts.ScriptTarget.ES5, false, ts.LanguageVariant.Standard, sourceFile.text);
   }
 
+  private getFixes(importClause: ts.ImportClause): Fix[] {
+    const text = importClause.namedBindings.getText();
+    let start = importClause.namedBindings.getStart();
+    let width = importClause.namedBindings.getWidth();
+    let fix = new Fix(start, start + width);
+    fix.replacements = [{
+      start: start,
+      end: start + width,
+      replaceWith: text.replace('{', '{ ').replace('}', ' }')
+    }];
+    return [fix];
+  }
+
   public visitImportDeclaration(node: ts.ImportDeclaration) {
     const importClause = node.importClause;
     if (importClause != null && importClause.namedBindings != null) {
       const text = importClause.namedBindings.getText();
 
-      let start = importClause.namedBindings.getStart();
-      let width = importClause.namedBindings.getWidth();
-      let fix = new Fix(start, start + width);
-      fix.replacements = [{
-        start: start,
-        end: start + width,
-        replaceWith: text.replace('{', '{ ').replace('}', ' }')
-      }];
-
       if (!this.checkForWhiteSpace(text)) {
-        this.addMatch(this.createMatch([fix], importClause.namedBindings.getStart(), importClause.namedBindings.getWidth(), ImportDestructuringSpacing.FAILURE_STRING));
+        this.addMatch(this.createMatch(
+          importClause.namedBindings.getStart(),
+          importClause.namedBindings.getWidth(),
+          ImportDestructuringSpacing.FAILURE_STRING,
+          this.getFixes(importClause)));
       }
     }
     // call the base version of this visitor to actually parse this node

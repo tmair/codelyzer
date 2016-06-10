@@ -1,21 +1,37 @@
 import {Replacement} from './src/base/language/rule/fix';
-import {Linter} from './src/base/codelyzer';
+import {Codelyzer} from './src/base/codelyzer';
 
-let sf = `
-import {foo, bar} form 'bar';
+let sf = `import {Input, Output, Component} form '@angular/core';
+
+@Component({
+  selector: 'codelyzer-tabs',
+  template: \`...\`
+})
+class TabsComponent {
+  //...
+}
 `
-const linter = new Linter('file.ts', sf, {});
+const codelyzer = new Codelyzer('file.ts', sf, {});
 
-const generator = linter.lint();
+const generator = codelyzer.process();
 let next;
+let fixed;
+
+console.log('Input:');
+console.log(sf);
 
 while (!(next = generator.next()).done) {
   let replacements: Replacement[] = [];
   next.value.fixes.forEach(f => replacements = replacements.concat(f.replacements));
-  let fixed = sf;
-  replacements.sort((a, b) => b.start - a.start).forEach(r => {
-    fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end);
-  });
-  console.log('Applyng', next.value.fixes, fixed);
+  fixed = sf;
+  replacements.sort((a, b) => b.start - a.start)
+    .forEach(r => {
+      console.log('Replacing', fixed.substring(r.start, r.end), 'with', r.replaceWith);
+      fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end);
+    });
 }
+
+console.log();
+console.log('Output:');
+console.log(fixed);
 

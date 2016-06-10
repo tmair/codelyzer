@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript";
-import {scanAllTokens} from "./language/utils";
-import {SkippableTokenAwareRuleWalker} from "./language/walker/skippableTokenAwareRuleWalker";
-import {IEnableDisablePosition} from "./ruleLoader";
+import * as ts from 'typescript';
+import {scanAllTokens} from './language/utils';
+import {SkippableTokenAwareRuleWalker} from './language/walker/skippable-token-aware-rule-walker';
+import {IEnableDisablePosition} from './rule-loader';
 
 export class EnableDisableRulesWalker extends SkippableTokenAwareRuleWalker {
     public enableDisableRuleMap: {[rulename: string]: IEnableDisablePosition[]} = {};
@@ -54,17 +54,17 @@ export class EnableDisableRulesWalker extends SkippableTokenAwareRuleWalker {
     private handlePossibleTslintSwitch(commentText: string, startingPosition: number, node: ts.SourceFile, scanner: ts.Scanner) {
         // regex is: start of string followed by "/*" or "//" followed by any amount of whitespace followed by "tslint:"
         if (commentText.match(/^(\/\*|\/\/)\s*tslint:/)) {
-            const commentTextParts = commentText.split(":");
+            const commentTextParts = commentText.split(':');
             // regex is: start of string followed by either "enable" or "disable"
             // followed optionally by -line or -next-line
             // followed by either whitespace or end of string
             const enableOrDisableMatch = commentTextParts[1].match(/^(enable|disable)(-(line|next-line))?(\s|$)/);
 
             if (enableOrDisableMatch != null) {
-                const isEnabled = enableOrDisableMatch[1] === "enable";
-                const isCurrentLine = enableOrDisableMatch[3] === "line";
-                const isNextLine = enableOrDisableMatch[3] === "next-line";
-                let rulesList = ["all"];
+                const isEnabled = enableOrDisableMatch[1] === 'enable';
+                const isCurrentLine = enableOrDisableMatch[3] === 'line';
+                const isNextLine = enableOrDisableMatch[3] === 'next-line';
+                let rulesList = ['all'];
                 if (commentTextParts.length > 2) {
                     rulesList = commentTextParts[2].split(/\s+/);
                 }
