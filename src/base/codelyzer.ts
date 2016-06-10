@@ -1,27 +1,13 @@
 import {Match} from './language/rule/match';
 import {getSourceFile} from './language/utils';
 import {
-  DEFAULT_CONFIG,
-  findConfiguration,
-  findConfigurationPath,
-  getRelativePath,
-  getRulesDirectories,
-  loadConfigurationFromPath,
 } from './configuration';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
-import {ICodelyzerOptionsRaw, ICodelyzerOptions, LintResult} from './lint';
+import {ICodelyzerOptionsRaw, ICodelyzerOptions, CodelyzerResult} from './config';
 import {loadRules} from './rule-loader';
-import {arrayify} from './utils';
 import {ImportDestructuringSpacing} from '../rules/import-destructuring-spacing-rule';
 
 export class Codelyzer {
-  public static VERSION = '3.11.0';
-
-  public static findConfiguration = findConfiguration;
-  public static findConfigurationPath = findConfigurationPath;
-  public static getRulesDirectories = getRulesDirectories;
-  public static loadConfigurationFromPath = loadConfigurationFromPath;
-
   private fileName: string;
   private source: string;
   private options: ICodelyzerOptions;
@@ -44,7 +30,7 @@ export class Codelyzer {
     rulesWalker.walk(sourceFile);
     const enableDisableRuleMap = rulesWalker.enableDisableRuleMap;
 
-    const configuration = this.options.configuration.rules;
+    const configuration = this.options.rules_config;
     const configuredRules = [new ImportDestructuringSpacing('import-destructuring-spacing', true, [])];
     const enabledRules = configuredRules.filter((r) => r.isEnabled());
     for (let rule of enabledRules) {
@@ -74,10 +60,11 @@ export class Codelyzer {
       throw new Error('Unknown Linter options type: ' + typeof options);
     }
 
-    let { configuration } = options;
+    let { rules_config, rules_directories } = options;
 
     return {
-      configuration: configuration || DEFAULT_CONFIG
+      rules_config: rules_config || {},
+      rules_directories: rules_directories || []
     };
   }
 }

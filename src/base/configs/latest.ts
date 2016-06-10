@@ -21,3 +21,4 @@ export const rules = {
 // work around "extends" being a keyword
 const xtends = "tslint:recommended";
 export { xtends as extends };
+
