@@ -1,6 +1,12 @@
 import * as Lint from 'tslint/lib/lint';
-import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
+
+import * as ts from 'typescript';
+import {AbstractRule} from '../lib/language/rule/abstract-rule';
+import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
+import {Match} from '../lib/language/rule/match';
+import {Fix} from '../lib/language/rule/fix';
+
 
 import SyntaxKind = require('./util/syntaxKind');
 
@@ -10,7 +16,7 @@ export interface IUsePropertyDecoratorConfig {
   errorMessage: string;
 }
 
-export class UsePropertyDecorator extends Lint.Rules.AbstractRule {
+export class UsePropertyDecorator extends AbstractRule {
   public static formatFailureString(config: IUsePropertyDecoratorConfig, decoratorName: string, className: string) {
     let decorators = config.decoratorName;
     if (decorators instanceof Array) {
@@ -25,7 +31,7 @@ export class UsePropertyDecorator extends Lint.Rules.AbstractRule {
     super(ruleName, value, disabledIntervals);
   }
 
-  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+  public apply(sourceFile: ts.SourceFile): Match[] {
     let documentRegistry = ts.createDocumentRegistry();
     let languageServiceHost = Lint.createLanguageServiceHost('file.ts', sourceFile.getFullText());
     return this.applyWithWalker(
@@ -35,7 +41,7 @@ export class UsePropertyDecorator extends Lint.Rules.AbstractRule {
   }
 }
 
-class DirectiveMetadataWalker extends Lint.RuleWalker {
+class DirectiveMetadataWalker extends RefactorRuleWalker {
   private languageService : ts.LanguageService;
   private typeChecker : ts.TypeChecker;
 
@@ -67,8 +73,8 @@ class DirectiveMetadataWalker extends Lint.RuleWalker {
       (<ts.ObjectLiteralExpression>arg).properties.filter(prop => (<any>prop.name).text === this.config.propertyName)
       .forEach(prop => {
         let p = <any>prop;
-        this.addFailure(
-          this.createFailure(
+        this.addMatch(
+          this.createMatch(
             p.getStart(),
             p.getWidth(),
             UsePropertyDecorator.formatFailureString(this.config, decoratorName, className)));

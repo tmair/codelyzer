@@ -32,11 +32,11 @@ async function processFile(filename: string) {
   next = generator.next();
   while (!next.done) {
     let { reporter, match } = next.value;
-    let res = await reporter.report(match);
+    let res = await reporter.report(match, true);
     let fixes = getFixes(match, res.refactoring);
     if (fixes.length > 0) {
       fixes.forEach(r => fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end));
-      console.log(`Writing in file: "${chalk.yellow(filename)}."`);
+      console.log(`Writing in file: "${chalk.yellow(filename)}".`);
     }
     fs.writeFileSync(filename, fixed);
     next = generator.next();

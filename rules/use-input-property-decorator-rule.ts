@@ -2,7 +2,7 @@ import * as Lint from 'tslint/lib/lint';
 
 import {UsePropertyDecorator} from './propertyDecoratorBase';
 
-export class Rule extends UsePropertyDecorator {
+export class UseInputPropertyDecoratorRule extends UsePropertyDecorator {
   constructor(ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[]) {
     super({
       decoratorName: 'Input',
@@ -11,3 +11,4 @@ export class Rule extends UsePropertyDecorator {
     }, ruleName, value, disabledIntervals);
   }
 }
+

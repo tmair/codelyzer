@@ -87,6 +87,7 @@ export class Match {
       name: this.fileName,
       ruleName: this.ruleName,
       startPosition: this.startPosition.toJS(),
+      fixes: this.fixes.map(f => f.toJS())
     };
   }
 
