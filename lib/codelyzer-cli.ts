@@ -16,7 +16,7 @@ const getConfirmMessage = (fixes: Fix[], filename: string, contents: string) => 
   return [
     {
       type: 'checkbox',
-      message: `Which fixes do you want to apply in in file ${filename}:`,
+      message: `Which fixes do you want to apply in in file "${filename}":`,
       name: 'refactoring',
       choices: fixes.map(f => {
         return {

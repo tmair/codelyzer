@@ -1,4 +1,4 @@
-import {Match} from './language/rule/match';
+import {Match, RuleFailure} from './language/rule/match';
 import {getSourceFile} from './language/utils';
 import {
 } from './configuration';
@@ -19,7 +19,7 @@ export class Codelyzer {
   }
 
   public *process() {
-    const matches: Match[] = [];
+    const matches: RuleFailure[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
 
     // walk the code first to find all the intervals where rules are disabled
@@ -41,7 +41,7 @@ export class Codelyzer {
     for (let rule of enabledRules) {
       const ruleMatches = rule.apply(sourceFile);
       for (let ruleMatch of ruleMatches) {
-        if (!this.containsMatch(matches, ruleMatch)) {
+        if (!this.containsMatch(matches, ruleMatch) && ruleMatch instanceof Match && ruleMatch.hasFix()) {
           yield ruleMatch;
         }
       }
@@ -56,7 +56,7 @@ export class Codelyzer {
 //    };
   }
 
-  private containsMatch(matches: Match[], match: Match) {
+  private containsMatch(matches: RuleFailure[], match: RuleFailure) {
     return matches.some(m => m.equals(match));
   }
 

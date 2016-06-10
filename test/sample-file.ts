@@ -1,4 +1,4 @@
-import {Input, Output, Component} from '@angular/core';
+import { Input, Output, Component } from '@angular/core';
 
 @Component({
   selector: 'codelyzer-tabs',

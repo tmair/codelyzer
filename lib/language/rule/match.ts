@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
 import {Fix} from './fix';
 
-export class MatchPosition {
-  private position: number;
-  private lineAndCharacter: ts.LineAndCharacter;
+export class RuleFailurePosition {
+  protected position: number;
+  protected lineAndCharacter: ts.LineAndCharacter;
 
   constructor(position: number, lineAndCharacter: ts.LineAndCharacter) {
     this.position = position;
@@ -26,7 +26,7 @@ export class MatchPosition {
     };
   }
 
-  public equals(ruleFailurePosition: MatchPosition) {
+  public equals(ruleFailurePosition: RuleFailurePosition) {
     const ll = this.lineAndCharacter;
     const rr = ruleFailurePosition.lineAndCharacter;
 
@@ -36,29 +36,38 @@ export class MatchPosition {
   }
 }
 
+export class RuleFailure {
+  protected fileName: string;
+  protected startPosition: RuleFailurePosition;
+  protected endPosition: RuleFailurePosition;
 
-export class Match {
-  startPosition: MatchPosition;
-  endPosition: MatchPosition;
+  constructor(protected sourceFile: ts.SourceFile,
+              protected start: number,
+              protected end: number,
+              protected failure: string,
+              protected ruleName: string) {
 
-  constructor(private fixes: Fix[],
-              private sourceFile: ts.SourceFile,
-              private start: number,
-              private end: number,
-              private failure: string,
-              private ruleName: string) {
-      this.startPosition = this.createFailurePosition(start);
-      this.endPosition = this.createFailurePosition(end);
+    this.sourceFile = sourceFile;
+    this.fileName = sourceFile.fileName;
+    this.startPosition = this.createFailurePosition(start);
+    this.endPosition = this.createFailurePosition(end);
+    this.failure = failure;
+    this.ruleName = ruleName;
   }
-  private createFailurePosition(position: number) {
-    const lineAndCharacter = this.sourceFile.getLineAndCharacterOfPosition(position);
-    return new MatchPosition(position, lineAndCharacter);
+
+  public getFileName() {
+    return this.fileName;
   }
-  public getStartPosition(): MatchPosition {
+
+  public getRuleName() {
+    return this.ruleName;
+  }
+
+  public getStartPosition(): RuleFailurePosition {
     return this.startPosition;
   }
 
-  public getEndPosition(): MatchPosition {
+  public getEndPosition(): RuleFailurePosition {
     return this.endPosition;
   }
 
@@ -66,10 +75,42 @@ export class Match {
     return this.failure;
   }
 
-  public equals(match: Match) {
-    return this.failure === match.failure &&
-      this.startPosition.equals(match.startPosition) &&
-      this.endPosition.equals(match.endPosition);
+  public toJson() {
+    return this.toJS();
+  }
+
+  public toJS(): any {
+    return {
+      endPosition: this.endPosition.toJS(),
+      failure: this.failure,
+      name: this.fileName,
+      ruleName: this.ruleName,
+      startPosition: this.startPosition.toJS(),
+    };
+  }
+
+  public equals(ruleFailure: RuleFailure) {
+    return this.failure  === ruleFailure.getFailure()
+        && this.fileName === ruleFailure.getFileName()
+        && this.startPosition.equals(ruleFailure.getStartPosition())
+        && this.endPosition.equals(ruleFailure.getEndPosition());
+  }
+
+  private createFailurePosition(position: number) {
+    const lineAndCharacter = this.sourceFile.getLineAndCharacterOfPosition(position);
+    return new RuleFailurePosition(position, lineAndCharacter);
+  }
+}
+
+
+export class Match extends RuleFailure {
+  constructor(protected fixes: Fix[],
+              sourceFile: ts.SourceFile,
+              start: number,
+              end: number,
+              failure: string,
+              ruleName: string) {
+    super(sourceFile, start, end, failure, ruleName);
   }
 
   public hasFix() {
