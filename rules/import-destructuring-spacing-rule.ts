@@ -27,6 +27,8 @@ class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
     let start = importClause.namedBindings.getStart();
     let width = importClause.namedBindings.getWidth();
     let fix = new Fix(start, start + width);
+    fix.description = 'Add spaces between curly braces';
+    fix.safe = true;
     fix.replacements = [{
       start: start,
       end: start + width,

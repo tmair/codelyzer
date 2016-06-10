@@ -76,7 +76,6 @@ function loadRule(directory: string, ruleName: string) {
     const ruleModule = require(directory);
     if (ruleModule) {
       return ruleModule.filter(rule => {
-        console.log(rule.name, ruleName);
         if (rule.name === ruleName) {
           return true;
         }

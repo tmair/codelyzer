@@ -1,0 +1,6 @@
+{
+  "rules_config": {
+    "import-destructuring-spacing": true
+  },
+  "rules_directories": ["./rules"]
+}
