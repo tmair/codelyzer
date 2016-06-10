@@ -1,7 +1,7 @@
-import {Match} from './match';
-import {RefactorRuleWalker} from '../walker/refactor-rule-walker';
-
 import * as ts from 'typescript';
+
+import {Match} from './match';
+import {RefactorRuleWalker} from '../walker';
 
 export interface IOptions {
   ruleArguments?: any[];

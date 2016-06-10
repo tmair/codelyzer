@@ -5,7 +5,7 @@ import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
 import {Match} from '../lib/language/rule/match';
 import {Fix} from '../lib/language/rule/fix';
 
-export class ImportDestructuringSpacing extends AbstractRule {
+export class ImportDestructuringSpacingRule extends AbstractRule {
   public static FAILURE_STRING = 'You need to leave whitespaces inside of the import statement\'s curly braces ($$03-05$$)';
 
   public apply(sourceFile: ts.SourceFile): Match[] {
@@ -46,7 +46,7 @@ class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
         this.addMatch(this.createMatch(
           importClause.namedBindings.getStart(),
           importClause.namedBindings.getWidth(),
-          ImportDestructuringSpacing.FAILURE_STRING,
+          ImportDestructuringSpacingRule.FAILURE_STRING,
           this.getFixes(importClause)));
       }
     }
@@ -55,6 +55,9 @@ class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
   }
 
   private checkForWhiteSpace(text: string) {
+    if (/\s*\*\s+as\s+[^\s]/.test(text)) {
+      return true;
+    }
     return /{\s[^]*\s}/.test(text);
   }
 }

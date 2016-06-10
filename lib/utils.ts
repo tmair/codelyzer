@@ -183,7 +183,7 @@ export function loadConfigurationFromPath(configFilePath: string): IConfiguratio
 
         const configFileDir = path.dirname(resolvedConfigFilePath);
 
-        configFile.rulesDirectory = getRulesDirectories(configFile.rulesDirectory, configFileDir);
+        configFile.rulesDirectory = getValidDirectories(configFile.rulesDirectory, configFileDir);
         return configFile;
     }
 }
@@ -266,7 +266,7 @@ export function getRelativePath(directory: string, relativeTo?: string): string 
  * should be the path to the tslint.json file.
  * @return An array of absolute paths to directories potentially containing rules
  */
-export function getRulesDirectories(directories: string | string[], relativeTo?: string): string[] {
+export function getValidDirectories(directories: string | string[], relativeTo?: string): string[] {
     const rulesDirectories = arrayify(directories).map(dir => getRelativePath(dir, relativeTo));
 
     for (const directory of rulesDirectories) {

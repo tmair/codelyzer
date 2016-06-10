@@ -1,10 +1,7 @@
 import * as ts from 'typescript';
-import {Fix} from '../rule/fix';
-import {IOptions} from '../../config';
-import {IDisabledInterval} from '../rule/rule';
+import {IDisabledInterval, IOptions, Fix, Match} from '../rule';
 import {doesIntersect} from '../utils';
 import {SyntaxWalker} from './syntax-walker';
-import {Match} from '../rule/match';
 
 export class RefactorRuleWalker extends SyntaxWalker {
   private limit: number;
@@ -58,7 +55,7 @@ export class RefactorRuleWalker extends SyntaxWalker {
   public createMatch(start: number, width: number, failure: string, fixes: Fix[] = []): Match {
     const from = (start > this.limit) ? this.limit : start;
     const to = ((start + width) > this.limit) ? this.limit : (start + width);
-    return new Match(fixes, this.sourceFile, from, to, failure, this.ruleName);
+    return new Match(this.sourceFile, from, to, failure, this.ruleName, fixes);
   }
 
   public addMatch(match: Match) {

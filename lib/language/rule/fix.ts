@@ -3,6 +3,7 @@ export interface Replacement {
   end: number;
   replaceWith: string;
 }
+
 export class Fix {
   // User friendly description of the fix
   description: string;

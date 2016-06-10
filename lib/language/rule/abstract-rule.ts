@@ -1,8 +1,6 @@
 import * as ts from 'typescript';
-import {Match} from './match';
-import {RefactorRuleWalker} from '../walker/refactor-rule-walker';
-import {IOptions} from '../../config';
-import {IRule, IDisabledInterval} from './rule';
+import {RefactorRuleWalker} from '../walker';
+import {Match, IOptions, IRule, IDisabledInterval} from './';
 
 export abstract class AbstractRule implements IRule {
   private options: IOptions;

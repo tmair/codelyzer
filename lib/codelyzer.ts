@@ -1,11 +1,7 @@
-import {Match, RuleFailure} from './language/rule/match';
-import {getSourceFile} from './language/utils';
-import {
-} from './configuration';
+import {Match, getSourceFile, Replacement} from './language';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
-import {ICodelyzerOptionsRaw, ICodelyzerOptions, CodelyzerResult} from './config';
-import {loadRules} from './rule-loader';
-import {ImportDestructuringSpacing} from '../rules/import-destructuring-spacing-rule';
+import {ICodelyzerOptionsRaw, ICodelyzerOptions, CodelyzerResult, DEFAULT_REPORTER} from './config';
+import {loadRules, loadReporter} from './loader';
 
 export class Codelyzer {
   private fileName: string;
@@ -19,10 +15,11 @@ export class Codelyzer {
   }
 
   public *process() {
-    const matches: RuleFailure[] = [];
+    const matches: Match[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
+    const options = this.options;
 
-    // walk the code first to find all the intervals where rules are disabled
+    // Walk the code first to find all the intervals where rules are disabled
     const rulesWalker = new EnableDisableRulesWalker(sourceFile, {
       disabledIntervals: [],
       ruleName: '',
@@ -31,32 +28,24 @@ export class Codelyzer {
 
     const enableDisableRuleMap = rulesWalker.enableDisableRuleMap;
 
-    const configuration = this.options.rules_config;
+    const configuration = options.rules_config;
     const configuredRules = loadRules(configuration,
         enableDisableRuleMap,
-        this.options.rules_directories
-      );
-    //[new ImportDestructuringSpacing('import-destructuring-spacing', true, [])];
+        options.rules_directories);
+
+    const reporter = loadReporter(options.reporter, options.reporters_directories);
     const enabledRules = configuredRules.filter((r) => r.isEnabled());
     for (let rule of enabledRules) {
       const ruleMatches = rule.apply(sourceFile);
-      for (let ruleMatch of ruleMatches) {
-        if (!this.containsMatch(matches, ruleMatch) && ruleMatch instanceof Match && ruleMatch.hasFix()) {
-          yield ruleMatch;
+      for (let match of ruleMatches) {
+        if (!this.containsMatch(matches, match)) {
+          yield { reporter, match };
         }
       }
     }
-
-//    const output = formatter.format(matches);
-//    return {
-//      failureCount: matches.length,
-//      failures: matches,
-//      format: this.options.formatter,
-//      output: output,
-//    };
   }
 
-  private containsMatch(matches: RuleFailure[], match: RuleFailure) {
+  private containsMatch(matches: Match[], match: Match) {
     return matches.some(m => m.equals(match));
   }
 
@@ -65,11 +54,13 @@ export class Codelyzer {
       throw new Error('Unknown Linter options type: ' + typeof options);
     }
 
-    let { rules_config, rules_directories } = options;
+    let { rules_config, rules_directories, reporter, reporters_directories } = options;
 
     return {
       rules_config: rules_config || {},
-      rules_directories: rules_directories || []
+      rules_directories: rules_directories || [],
+      reporters_directories: reporters_directories || [],
+      reporter: reporter || DEFAULT_REPORTER
     };
   }
 }

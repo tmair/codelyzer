@@ -17,8 +17,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
-import {IDisabledInterval} from './rule/rule';
-import {Match} from './rule/match';
+import {IDisabledInterval, Match} from './rule';
 
 export function getSourceFile(fileName: string, source: string): ts.SourceFile {
   const normalizedName = path.normalize(fileName).replace(/\\/g, '/');
@@ -135,3 +134,4 @@ export function isNestedModuleDeclaration(decl: ts.ModuleDeclaration) {
   // nodes
   return decl.name.pos === decl.pos;
 }
+

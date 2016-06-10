@@ -1,59 +1,45 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
-import {Replacement, Fix} from './language/rule/fix';
-import {Codelyzer} from './codelyzer';
+import {Replacement, Match, Fix} from './language';
 import {findConfiguration} from './utils';
+import {Codelyzer} from './codelyzer';
 
 const argv = require('yargs').argv;
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 
-const getFixDescription = (fix: Fix, contents: string) => {
-  return fix.description;
-};
+function getFixes(match: Match, choses: string[]) {
+  let replacements: Replacement[] = [];
+  match.fixes
+    .filter(f => choses.indexOf(f.description) >= 0)
+    .forEach(f => replacements = replacements.concat(f.replacements));
+  return replacements.sort((a, b) => b.start - a.start)
+}
 
-const getConfirmMessage = (fixes: Fix[], filename: string, contents: string) => {
-  return [
-    {
-      type: 'checkbox',
-      message: `Which fixes do you want to apply in in file "${filename}":`,
-      name: 'refactoring',
-      choices: fixes.map(f => {
-        return {
-          name: getFixDescription(f, contents)
-        };
-      })
-    }
-  ]
-};
-
-export const processFile = (filename: string) => {
+async function processFile(filename: string) {
   if (!fs.existsSync(filename)) {
     console.error(`Unable to open file: ${filename}`);
     process.exit(1);
   }
   const contents = fs.readFileSync(filename, 'utf8');
   const configuration = findConfiguration('codelyzer.json', filename);
-
   const codelyzer = new Codelyzer(filename, contents, configuration);
-
   const generator = codelyzer.process();
 
   let next;
-  let fixed;
+  let fixed = contents;
 
-  while (!(next = generator.next()).done) {
-    let replacements: Replacement[] = [];
-    next.value.fixes.forEach(f => replacements = replacements.concat(f.replacements));
-    fixed = contents;
-    inquirer.prompt(getConfirmMessage(next.value.fixes, filename, contents))
-      .then(() => {
-        replacements.sort((a, b) => b.start - a.start)
-          .forEach(r => {
-            fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end);
-          });
-        fs.writeFileSync(filename, fixed);
-      });
+  next = generator.next();
+  while (!next.done) {
+    let { reporter, match } = next.value;
+    let res = await reporter.report(match);
+    let fixes = getFixes(match, res.refactoring);
+    if (fixes.length > 0) {
+      fixes.forEach(r => fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end));
+      console.log(`Writing in file: "${chalk.yellow(filename)}."`);
+    }
+    fs.writeFileSync(filename, fixed);
+    next = generator.next();
   }
 };
 

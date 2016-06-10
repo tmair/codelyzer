@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {getRulesDirectories} from './utils';
+import {getValidDirectories} from './utils';
 import {IRule, IDisabledInterval} from './language/rule/rule';
 
 const camelize = require('underscore.string').camelize;
@@ -9,6 +9,25 @@ export interface IEnableDisablePosition {
   isEnabled: boolean;
   position: number;
 }
+
+export function loadReporter(name: string, reportersDirectories?: string | string[]) {
+  let camelizedName = transformName(name, 'Reporter');
+
+  let Reporter;
+  let directories = getValidDirectories(reportersDirectories);
+
+  for (let reportersDirectory of directories) {
+    if (reportersDirectory != null) {
+      Reporter = findSymbol(camelizedName, reportersDirectory);
+
+      if (Reporter !== null) {
+        return new Reporter;
+      }
+    }
+  }
+  return undefined;
+}
+
 
 export function loadRules(ruleConfiguration: {[name: string]: any},
               enableDisableRuleMap: {[rulename: string]: IEnableDisablePosition[]},
@@ -19,7 +38,7 @@ export function loadRules(ruleConfiguration: {[name: string]: any},
   for (const ruleName in ruleConfiguration) {
     if (ruleConfiguration.hasOwnProperty(ruleName)) {
       const ruleValue = ruleConfiguration[ruleName];
-      const Rule = findRule(ruleName, rulesDirectories);
+      const Rule = findSymbol(transformName(ruleName, 'Rule'), rulesDirectories);
       if (Rule == null) {
         notFoundRules.push(ruleName);
       } else {
@@ -44,46 +63,43 @@ export function loadRules(ruleConfiguration: {[name: string]: any},
   }
 }
 
-export function findRule(name: string, rulesDirectories?: string | string[]) {
-  let camelizedName = transformName(name);
+export function findSymbol(name: string, symbolsDirectories?: string | string[]) {
+  let result;
+  let directories = getValidDirectories(symbolsDirectories);
 
-  let Rule;
-  let directories = getRulesDirectories(rulesDirectories);
 
-  for (let rulesDirectory of directories) {
-    if (rulesDirectory != null) {
-      Rule = loadRule(rulesDirectory, camelizedName);
-      if (Rule != null) {
-        return Rule;
+  for (let symbolsDirectory of directories) {
+    if (symbolsDirectory != null) {
+      result = loadSymbol(symbolsDirectory, name);
+      if (result != null) {
+        return result;
       }
     }
   }
-
   return undefined;
 }
 
-function transformName(name: string) {
+function transformName(name: string, suffix: string) {
   const nameMatch = name.match(/^([-_]*)(.*?)([-_]*)$/);
   let result = name;
   if (nameMatch !== null) {
     result = nameMatch[1] + camelize(nameMatch[2]) + nameMatch[3];
   }
-  return result[0].toUpperCase() + result.substring(1, name.length);
+  return result[0].toUpperCase() + result.substring(1, name.length) + suffix;
 }
 
-function loadRule(directory: string, ruleName: string) {
+function loadSymbol(directory: string, symbolName: string) {
   if (fs.existsSync(directory)) {
-    const ruleModule = require(directory);
-    if (ruleModule) {
-      return ruleModule.filter(rule => {
-        if (rule.name === ruleName) {
+    const symbolModule = require(directory);
+    if (symbolModule) {
+      return symbolModule.filter(symbol => {
+        if (symbol.name === symbolName) {
           return true;
         }
         return false;
       }).pop();
     }
   }
-
   return undefined;
 }
 

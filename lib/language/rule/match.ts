@@ -36,7 +36,7 @@ export class RuleFailurePosition {
   }
 }
 
-export class RuleFailure {
+export class Match {
   protected fileName: string;
   protected startPosition: RuleFailurePosition;
   protected endPosition: RuleFailurePosition;
@@ -45,7 +45,8 @@ export class RuleFailure {
               protected start: number,
               protected end: number,
               protected failure: string,
-              protected ruleName: string) {
+              protected ruleName: string,
+              public fixes: Fix[] = []) {
 
     this.sourceFile = sourceFile;
     this.fileName = sourceFile.fileName;
@@ -89,7 +90,7 @@ export class RuleFailure {
     };
   }
 
-  public equals(ruleFailure: RuleFailure) {
+  public equals(ruleFailure: Match) {
     return this.failure  === ruleFailure.getFailure()
         && this.fileName === ruleFailure.getFileName()
         && this.startPosition.equals(ruleFailure.getStartPosition())
@@ -100,18 +101,7 @@ export class RuleFailure {
     const lineAndCharacter = this.sourceFile.getLineAndCharacterOfPosition(position);
     return new RuleFailurePosition(position, lineAndCharacter);
   }
-}
 
-
-export class Match extends RuleFailure {
-  constructor(protected fixes: Fix[],
-              sourceFile: ts.SourceFile,
-              start: number,
-              end: number,
-              failure: string,
-              ruleName: string) {
-    super(sourceFile, start, end, failure, ruleName);
-  }
 
   public hasFix() {
     return this.fixes && this.fixes.length > 0;

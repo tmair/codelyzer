@@ -1,6 +1,6 @@
-import {ImportDestructuringSpacing} from './import-destructuring-spacing-rule';
+import {ImportDestructuringSpacingRule} from './import-destructuring-spacing-rule';
 
 export = [
-  ImportDestructuringSpacing
+  ImportDestructuringSpacingRule
 ];
 
