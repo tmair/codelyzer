@@ -10,41 +10,28 @@ export interface IEnableDisablePosition {
   position: number;
 }
 
-export function loadFormatter(name: string, formatterDirectories?: string | string[]) {
-  let camelizedName = transformName(name, 'Formatter');
-
-  let Formatter;
-  let directories = getValidDirectories(formatterDirectories);
-
-  for (let formattersDirectory of directories) {
-    if (formattersDirectory != null) {
-      Formatter = findSymbol(camelizedName, formattersDirectory);
-      if (Formatter !== null) {
-        return new Formatter;
+function loadInternalSymbol(name: string, dirs: string | string[], suffix: string) {
+  let camelizedName = transformName(name, suffix);
+  let Sym;
+  let directories = getValidDirectories(dirs);
+  for (let dir of directories) {
+    if (dir != null) {
+      Sym = findSymbol(camelizedName, dir);
+      if (Sym !== null) {
+        return new Sym;
       }
     }
   }
   return undefined;
 }
 
-export function loadReporter(name: string, reportersDirectories?: string | string[]) {
-  let camelizedName = transformName(name, 'Reporter');
-
-  let Reporter;
-  let directories = getValidDirectories(reportersDirectories);
-
-  for (let reportersDirectory of directories) {
-    if (reportersDirectory != null) {
-      Reporter = findSymbol(camelizedName, reportersDirectory);
-
-      if (Reporter !== null) {
-        return new Reporter;
-      }
-    }
-  }
-  return undefined;
+export function loadFormatter(name: string, formatterDirectories: string | string[]) {
+  return loadInternalSymbol(name, formatterDirectories, 'Formatter');
 }
 
+export function loadReporter(name: string, reportersDirectories: string | string[]) {
+  return loadInternalSymbol(name, reportersDirectories, 'Reporter');
+}
 
 export function loadRules(ruleConfiguration: {[name: string]: any},
               enableDisableRuleMap: {[rulename: string]: IEnableDisablePosition[]},
@@ -83,8 +70,6 @@ export function loadRules(ruleConfiguration: {[name: string]: any},
 export function findSymbol(name: string, symbolsDirectories?: string | string[]) {
   let result;
   let directories = getValidDirectories(symbolsDirectories);
-
-
   for (let symbolsDirectory of directories) {
     if (symbolsDirectory != null) {
       result = loadSymbol(symbolsDirectory, name);
@@ -167,7 +152,6 @@ function buildDisabledIntervalsFromSwitches(ruleSpecificList: IEnableDisablePosi
       startPosition: disabledStartPosition,
     });
   }
-
   return disabledIntervalList;
 }
 

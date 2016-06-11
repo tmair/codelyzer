@@ -5,8 +5,10 @@ import {
   ICodelyzerOptionsRaw,
   ICodelyzerOptions,
   CodelyzerResult,
-    DEFAULT_FORMATTER,
-    DEFAULT_REPORTER
+  DEFAULT_FORMATTER,
+  DEFAULT_REPORTER,
+  DEFAULT_FORMATTERS_DIR,
+  DEFAULT_REPORTERS_DIR
 } from './config';
 
 export class Codelyzer {
@@ -41,7 +43,6 @@ export class Codelyzer {
   }
 
   public *process(): any {
-
     const matches: Match[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
     const options = this.options;
@@ -62,6 +63,7 @@ export class Codelyzer {
       }
     }
   }
+
   private getFixes(match: Match, choices: string[]) {
     let replacements: Replacement[] = [];
     match.fixes
@@ -69,6 +71,7 @@ export class Codelyzer {
       .forEach(f => replacements = replacements.concat(f.replacements));
     return replacements.sort((a, b) => b.start - a.start)
   }
+
   private getRules() {
     const sourceFile = getSourceFile(this.fileName, this.source);
     const options = this.options;
@@ -107,9 +110,9 @@ export class Codelyzer {
     return {
       rules_config: rules_config || {},
       rules_directories: rules_directories || [],
-      reporters_directories: reporters_directories || [],
+      reporters_directories: reporters_directories || [DEFAULT_REPORTERS_DIR],
       reporter: reporter || DEFAULT_REPORTER,
-      formatters_directories: formatters_directories || [],
+      formatters_directories: formatters_directories || [DEFAULT_FORMATTERS_DIR],
       formatter: formatter || DEFAULT_FORMATTER
     };
   }
