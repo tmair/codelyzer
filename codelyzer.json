@@ -1,6 +1,9 @@
 {
   "rules_config": {
-    "import-destructuring-spacing": true,
+    "import-destructuring-spacing": {
+      "bar": "foo",
+      "baz": "bar"
+    },
     "use-input-property-decorator": true
   },
   "rules_directories": ["./rules"],

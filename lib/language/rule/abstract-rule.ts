@@ -41,6 +41,10 @@ export abstract class AbstractRule implements IRule {
       return value[0];
     }
 
+    if (typeof value === 'object') {
+      return !!value.enabled;
+    }
+
     return false;
   }
 }
