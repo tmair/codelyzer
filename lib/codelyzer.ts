@@ -59,11 +59,10 @@ export class Codelyzer {
   }
 
   private getFixes(match: Match, choices: string[]) {
-    let replacements: Replacement[] = [];
-    match.fixes
+    return match.fixes
       .filter(f => choices.indexOf(f.description) >= 0)
-      .forEach(f => replacements = replacements.concat(f.replacements));
-    return replacements.sort((a, b) => b.start - a.start)
+      .reduce((accum, f) => accum.concat(f.replacements), [])
+      .sort((a, b) => b.start - a.start)
   }
 
   private getRules() {
