@@ -1,9 +1,5 @@
 import * as ts from 'typescript';
-import * as Lint from 'tslint/lib/lint';
-import {AbstractRule} from '../lib/language/rule/abstract-rule';
-import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
-import {Match} from '../lib/language/rule/match';
-import {Fix} from '../lib/language/rule/fix';
+import {IOptions, AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
 
 export class ImportDestructuring extends AbstractRule {
   public static RULE_NAME = 'import-destructuring-spacing';
@@ -18,7 +14,7 @@ export class ImportDestructuring extends AbstractRule {
 class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
   private scanner: ts.Scanner;
 
-  constructor(sourceFile: ts.SourceFile, options: Lint.IOptions) {
+  constructor(sourceFile: ts.SourceFile, options: IOptions) {
     super(sourceFile, options);
     this.scanner = ts.createScanner(ts.ScriptTarget.ES5, false, ts.LanguageVariant.Standard, sourceFile.text);
   }

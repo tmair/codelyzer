@@ -2,7 +2,6 @@
   "rules_config": {
     "import-destructuring-spacing": true,
     "use-input-property-decorator": true
-  },
-  "rules_directories": ["./rules"]
+  }
 }
 

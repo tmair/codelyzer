@@ -2,11 +2,7 @@ import * as Lint from 'tslint/lib/lint';
 import {sprintf} from 'sprintf-js';
 
 import * as ts from 'typescript';
-import {AbstractRule} from '../lib/language/rule/abstract-rule';
-import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
-import {Match} from '../lib/language/rule/match';
-import {Fix} from '../lib/language/rule/fix';
-
+import {AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
 
 import SyntaxKind = require('./util/syntaxKind');
 

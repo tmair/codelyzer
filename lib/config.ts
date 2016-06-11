@@ -2,12 +2,6 @@ import {Match} from './language';
 import {Formatter} from './formatters/formatter';
 import {Reporter} from './reporters/reporter';
 
-export const DEFAULT_REPORTER = 'default';
-export const DEFAULT_FORMATTER = 'compact';
-
-export const DEFAULT_REPORTERS_DIR = 'reporters';
-export const DEFAULT_FORMATTERS_DIR = 'formatters';
-
 export interface CodelyzerResult {
   matches: Match[];
   reporter: Reporter;

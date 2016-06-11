@@ -4,34 +4,50 @@ import {IRule, IDisabledInterval} from './language';
 
 const camelize = require('underscore.string').camelize;
 
-function loadInternalSymbol(name: string, dirs: string | string[], suffix: string) {
+interface SymbolEqualityPredicate {
+  (ctr: any):  boolean;
+}
+
+function loadInternalSymbol(name: string, dirs: string | string[], predicate: SymbolEqualityPredicate) {
   let Sym;
   let directories = getValidDirectories(dirs);
   for (let dir of directories) {
     if (dir != null) {
-      Sym = findSymbol(name, suffix, dir);
+      Sym = findSymbol(name, dir, predicate);
       if (Sym !== null) {
-        return new Sym;
+        return Sym;
       }
     }
   }
   return undefined;
 }
 
+export function loadRule(name: string, rulesDirectories: string | string[]) {
+  return loadInternalSymbol(name, rulesDirectories, (ctr: any) => {
+    return ctr.name === transformName(name, 'Rule') || ctr.RULE_NAME === name;
+  });
+}
+
 export function loadFormatter(name: string, formatterDirectories: string | string[]) {
-  return loadInternalSymbol(name, formatterDirectories, 'Formatter');
+  let Formatter = loadInternalSymbol(name, formatterDirectories, (ctr: any) => {
+    return ctr.name === transformName(name, 'Formatter') || ctr.FORMATTER_NAME === name;
+  });
+  return new Formatter;
 }
 
 export function loadReporter(name: string, reportersDirectories: string | string[]) {
-  return loadInternalSymbol(name, reportersDirectories, 'Reporter');
+  let Reporter = loadInternalSymbol(name, reportersDirectories, (ctr: any) => {
+    return ctr.name === transformName(name, 'Reporter') || ctr.REPORTER_NAME === name;
+  });
+  return new Reporter;
 }
 
-export function findSymbol(name: string, suffix: string, symbolsDirectories?: string | string[]) {
+export function findSymbol(name: string, symbolsDirectories: string | string[], predicate: SymbolEqualityPredicate) {
   let result;
   let directories = getValidDirectories(symbolsDirectories);
   for (let symbolsDirectory of directories) {
     if (symbolsDirectory != null) {
-      result = loadSymbol(symbolsDirectory, name, suffix);
+      result = loadSymbol(symbolsDirectory, name, predicate);
       if (result != null) {
         return result;
       }
@@ -49,17 +65,11 @@ function transformName(name: string, suffix: string) {
   return result[0].toUpperCase() + result.substring(1, name.length) + suffix;
 }
 
-function loadSymbol(directory: string, symbolName: string, suffix: string) {
-  const camelizedName = transformName(symbolName, suffix);
+function loadSymbol(directory: string, symbolName: string, predicate: SymbolEqualityPredicate) {
   if (fs.existsSync(directory)) {
     const symbolModule = require(directory);
     if (symbolModule) {
-      return symbolModule.filter(symbol => {
-        if (symbol.name === camelizedName || symbol.RULE_NAME === symbolName) {
-          return true;
-        }
-        return false;
-      }).pop();
+      return symbolModule.filter(symbol =>  predicate(symbol)).pop();
     }
   }
   return undefined;

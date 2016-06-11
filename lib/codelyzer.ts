@@ -4,19 +4,24 @@ import {
   ICodelyzerOptionsRaw,
   ICodelyzerOptions,
   ICodelyzerRuleOption,
-  CodelyzerResult,
-  DEFAULT_FORMATTER,
-  DEFAULT_REPORTER,
-  DEFAULT_FORMATTERS_DIR,
-  DEFAULT_REPORTERS_DIR
+  CodelyzerResult
 } from './config';
 
 import {buildDisabledIntervalsFromSwitches} from './utils';
 
+export interface RuleConfig {
+  rule: any;
+  options: any;
+}
+
+export interface RulesMap {
+  [ruleName: string]: RuleConfig;
+}
+
 export class Codelyzer {
   constructor(private fileName: string,
       private source: string,
-      private rules: AbstractRule[]) {}
+      private rulesMap: RulesMap) {}
 
   public lint() {
     const matches: Match[] = [];
@@ -70,45 +75,22 @@ export class Codelyzer {
     });
     rulesWalker.walk(sourceFile);
     const enableDisableRuleMap = rulesWalker.enableDisableRuleMap;
+    const result: AbstractRule[] = [];
     // Produces side-effect
-    this.rules.forEach((rule: AbstractRule) => {
-      let ruleName = rule.getOptions().ruleName;
+    Object.keys(this.rulesMap).forEach((ruleName: string) => {
+      let Rule = this.rulesMap[ruleName].rule;
+      let options = this.rulesMap[ruleName].options;
       const all = 'all'; // make the linter happy until we can turn it on and off
       const allList = (all in enableDisableRuleMap ? enableDisableRuleMap[all] : []);
       const ruleSpecificList = (ruleName in enableDisableRuleMap ? enableDisableRuleMap[ruleName] : []);
       const disabledIntervals = buildDisabledIntervalsFromSwitches(ruleSpecificList, allList);
-      rule.setDisabledIntervals(disabledIntervals);
+      result.push(new Rule(ruleName, options, disabledIntervals));
     });
-    return this.rules.filter((r) => r.isEnabled());
+    return result.filter((r) => r.isEnabled());
   }
 
   private containsMatch(matches: Match[], match: Match) {
     return matches.some(m => m.equals(match));
   }
-
-  private computeFullOptions(options: ICodelyzerOptionsRaw = {}): ICodelyzerOptions {
-    if (typeof options !== 'object') {
-      throw new Error('Unknown Linter options type: ' + typeof options);
-    }
-
-    let {
-      rules_config,
-      rules_directories,
-      reporter,
-      reporters_directories,
-      formatter,
-      formatters_directories
-    } = options;
-
-    return {
-      rules_config: rules_config || {},
-      rules_directories: rules_directories || [],
-      reporters_directories: reporters_directories || [DEFAULT_REPORTERS_DIR],
-      reporter: reporter || DEFAULT_REPORTER,
-      formatters_directories: formatters_directories || [DEFAULT_FORMATTERS_DIR],
-      formatter: formatter || DEFAULT_FORMATTER
-    };
-  }
 }
-
 
