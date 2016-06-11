@@ -17,7 +17,7 @@
 
 import * as ts from 'typescript';
 import {SkippableTokenAwareRuleWalker, scanAllTokens} from './language';
-import {IEnableDisablePosition} from './loader';
+import {IEnableDisablePosition} from './utils';
 
 export class EnableDisableRulesWalker extends SkippableTokenAwareRuleWalker {
   public enableDisableRuleMap: {[rulename: string]: IEnableDisablePosition[]} = {};

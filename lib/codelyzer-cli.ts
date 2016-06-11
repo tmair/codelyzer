@@ -11,8 +11,8 @@ const chalk = require('chalk');
 function lint(config, filename: string) {
   const contents = fs.readFileSync(filename, 'utf8');
   const codelyzer = new Codelyzer(filename, contents, config);
-  const result = codelyzer.lint();
-  console.log(result.formatter.format(result.matches));
+  const matches = codelyzer.lint();
+//  console.log(result.formatter.format(result.matches));
 }
 
 async function lintAndRefactor(config, filename: string) {

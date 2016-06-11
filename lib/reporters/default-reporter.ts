@@ -1,7 +1,8 @@
 import {Reporter} from './reporter';
 import {Match, Fix} from '../language';
+import * as chalk from 'chalk';
+
 const inquirer = require('inquirer');
-const chalk = require('chalk');
 
 const getFixDescription = (fix: Fix) => {
   return fix.description;

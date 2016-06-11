@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import {IDisabledInterval} from './language';
+
 export function arrayify<T>(arg: T | T[]): T[] {
   if (Array.isArray(arg)) {
     return arg;
@@ -277,3 +279,55 @@ export function getValidDirectories(directories: string | string[], relativeTo?:
 
   return rulesDirectories;
 }
+
+export interface IEnableDisablePosition {
+  isEnabled: boolean;
+  position: number;
+}
+
+export function buildDisabledIntervalsFromSwitches(ruleSpecificList: IEnableDisablePosition[], allList: IEnableDisablePosition[]) {
+  let isCurrentlyDisabled = false;
+  let disabledStartPosition: number;
+  const disabledIntervalList: IDisabledInterval[] = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < ruleSpecificList.length || j < allList.length) {
+    const ruleSpecificTopPositon = (i < ruleSpecificList.length ? ruleSpecificList[i].position : Infinity);
+    const allTopPositon = (j < allList.length ? allList[j].position : Infinity);
+    let newPositionToCheck: IEnableDisablePosition;
+    if (ruleSpecificTopPositon < allTopPositon) {
+      newPositionToCheck = ruleSpecificList[i];
+      i++;
+    } else {
+      newPositionToCheck = allList[j];
+      j++;
+    }
+
+    // we're currently disabled and enabling, or currently enabled and disabling -- a switch
+    if (newPositionToCheck.isEnabled === isCurrentlyDisabled) {
+      if (!isCurrentlyDisabled) {
+        // start a new interval
+        disabledStartPosition = newPositionToCheck.position;
+        isCurrentlyDisabled = true;
+      } else {
+        // we're currently disabled and about to enable -- end the interval
+        disabledIntervalList.push({
+          endPosition: newPositionToCheck.position,
+          startPosition: disabledStartPosition,
+        });
+        isCurrentlyDisabled = false;
+      }
+    }
+  }
+
+  if (isCurrentlyDisabled) {
+    // we started an interval but didn't finish one -- so finish it with an Infinity
+    disabledIntervalList.push({
+      endPosition: Infinity,
+      startPosition: disabledStartPosition,
+    });
+  }
+  return disabledIntervalList;
+}
+

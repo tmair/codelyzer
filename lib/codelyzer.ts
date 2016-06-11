@@ -1,9 +1,9 @@
-import {Match, getSourceFile, Replacement} from './language';
+import {Match, AbstractRule, getSourceFile, Replacement, IDisabledInterval} from './language';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
-import {loadRules, loadReporter, loadFormatter} from './loader';
 import {
   ICodelyzerOptionsRaw,
   ICodelyzerOptions,
+  ICodelyzerRuleOption,
   CodelyzerResult,
   DEFAULT_FORMATTER,
   DEFAULT_REPORTER,
@@ -11,23 +11,17 @@ import {
   DEFAULT_REPORTERS_DIR
 } from './config';
 
-export class Codelyzer {
-  private fileName: string;
-  private source: string;
-  private options: ICodelyzerOptions;
+import {buildDisabledIntervalsFromSwitches} from './utils';
 
-  constructor(fileName: string, source: string, options: ICodelyzerOptionsRaw) {
-    this.fileName = fileName;
-    this.source = source;
-    this.options = this.computeFullOptions(options);
-  }
+export class Codelyzer {
+  constructor(private fileName: string,
+      private source: string,
+      private rules: AbstractRule[]) {}
 
   public lint() {
     const matches: Match[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
-    const options = this.options;
     const enabledRules = this.getRules();
-    const formatter = loadFormatter(options.formatter, options.formatters_directories);
     for (let rule of enabledRules) {
       const ruleMatches = rule.apply(sourceFile);
       for (let match of ruleMatches) {
@@ -36,23 +30,18 @@ export class Codelyzer {
         }
       }
     }
-    return {
-      matches,
-      formatter
-    };
+    return matches;
   }
 
   public *process(): any {
     const matches: Match[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
-    const options = this.options;
     const enabledRules = this.getRules();
-    const reporter = loadReporter(options.reporter, options.reporters_directories);
     for (let rule of enabledRules) {
       const ruleMatches = rule.apply(sourceFile);
       for (let match of ruleMatches) {
         if (!this.containsMatch(matches, match)) {
-          let choices = yield { reporter, match };
+          let choices = yield { match };
           let fixes = this.getFixes(match, choices);
           if (fixes.length > 0) {
             fixes.forEach(r =>
@@ -74,7 +63,6 @@ export class Codelyzer {
 
   private getRules() {
     const sourceFile = getSourceFile(this.fileName, this.source);
-    const options = this.options;
     // Walk the code first to find all the intervals where rules are disabled
     const rulesWalker = new EnableDisableRulesWalker(sourceFile, {
       disabledIntervals: [],
@@ -82,11 +70,16 @@ export class Codelyzer {
     });
     rulesWalker.walk(sourceFile);
     const enableDisableRuleMap = rulesWalker.enableDisableRuleMap;
-    const configuration = options.rules_config;
-    const configuredRules = loadRules(configuration,
-        enableDisableRuleMap,
-        options.rules_directories);
-    return configuredRules.filter((r) => r.isEnabled());
+    // Produces side-effect
+    this.rules.forEach((rule: AbstractRule) => {
+      let ruleName = rule.getOptions().ruleName;
+      const all = 'all'; // make the linter happy until we can turn it on and off
+      const allList = (all in enableDisableRuleMap ? enableDisableRuleMap[all] : []);
+      const ruleSpecificList = (ruleName in enableDisableRuleMap ? enableDisableRuleMap[ruleName] : []);
+      const disabledIntervals = buildDisabledIntervalsFromSwitches(ruleSpecificList, allList);
+      rule.setDisabledIntervals(disabledIntervals);
+    });
+    return this.rules.filter((r) => r.isEnabled());
   }
 
   private containsMatch(matches: Match[], match: Match) {
@@ -117,4 +110,5 @@ export class Codelyzer {
     };
   }
 }
+
 

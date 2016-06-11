@@ -23,6 +23,10 @@ export abstract class AbstractRule implements IRule {
     return this.options;
   }
 
+  public setDisabledIntervals(di: IDisabledInterval[]) {
+    this.options.disabledIntervals = di;
+  }
+
   public abstract apply(sourceFile: ts.SourceFile): Match[];
 
   public applyWithWalker(walker: RefactorRuleWalker): Match[] {
@@ -39,10 +43,6 @@ export abstract class AbstractRule implements IRule {
 
     if (Array.isArray(value) && value.length > 0) {
       return value[0];
-    }
-
-    if (typeof value === 'object') {
-      return !!value.enabled;
     }
 
     return false;

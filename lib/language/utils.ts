@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
 import * as ts from 'typescript';
 import {IDisabledInterval, Match} from './rule';
 
+function normalizePath(str, stripTrailing = false) {
+  if (typeof str !== 'string') {
+    throw new TypeError('expected a string');
+  }
+  str = str.replace(/[\\\/]+/g, '/');
+  if (stripTrailing !== false) {
+    str = str.replace(/\/$/, '');
+  }
+  return str;
+};
+
 export function getSourceFile(fileName: string, source: string): ts.SourceFile {
-  const normalizedName = path.normalize(fileName).replace(/\\/g, '/');
+  const normalizedName = normalizePath(fileName).replace(/\\/g, '/');
   const compilerOptions = createCompilerOptions();
 
   const compilerHost: ts.CompilerHost = {
