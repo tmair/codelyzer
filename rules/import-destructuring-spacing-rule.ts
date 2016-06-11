@@ -5,7 +5,8 @@ import {RefactorRuleWalker} from '../lib/language/walker/refactor-rule-walker';
 import {Match} from '../lib/language/rule/match';
 import {Fix} from '../lib/language/rule/fix';
 
-export class ImportDestructuringSpacingRule extends AbstractRule {
+export class ImportDestructuring extends AbstractRule {
+  public static RULE_NAME = 'import-destructuring-spacing';
   public static FAILURE_STRING = 'You need to leave whitespaces inside of the import statement\'s curly braces ($$03-05$$)';
 
   public apply(sourceFile: ts.SourceFile): Match[] {
@@ -46,7 +47,7 @@ class ImportDestructuringSpacingWalker extends RefactorRuleWalker {
         this.addMatch(this.createMatch(
           importClause.namedBindings.getStart(),
           importClause.namedBindings.getWidth(),
-          ImportDestructuringSpacingRule.FAILURE_STRING,
+          ImportDestructuring.FAILURE_STRING,
           this.getFixes(importClause)));
       }
     }

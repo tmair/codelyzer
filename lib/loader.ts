@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {getValidDirectories} from './utils';
-import {IRule, IDisabledInterval} from './language/rule/rule';
+import {IRule, IDisabledInterval} from './language';
 
 const camelize = require('underscore.string').camelize;
 
@@ -11,12 +11,11 @@ export interface IEnableDisablePosition {
 }
 
 function loadInternalSymbol(name: string, dirs: string | string[], suffix: string) {
-  let camelizedName = transformName(name, suffix);
   let Sym;
   let directories = getValidDirectories(dirs);
   for (let dir of directories) {
     if (dir != null) {
-      Sym = findSymbol(camelizedName, dir);
+      Sym = findSymbol(name, suffix, dir);
       if (Sym !== null) {
         return new Sym;
       }
@@ -42,7 +41,7 @@ export function loadRules(ruleConfiguration: {[name: string]: any},
   for (const ruleName in ruleConfiguration) {
     if (ruleConfiguration.hasOwnProperty(ruleName)) {
       const ruleValue = ruleConfiguration[ruleName];
-      const Rule = findSymbol(transformName(ruleName, 'Rule'), rulesDirectories);
+      const Rule = findSymbol(ruleName, 'Rule', rulesDirectories);
       if (Rule == null) {
         notFoundRules.push(ruleName);
       } else {
@@ -67,12 +66,12 @@ export function loadRules(ruleConfiguration: {[name: string]: any},
   }
 }
 
-export function findSymbol(name: string, symbolsDirectories?: string | string[]) {
+export function findSymbol(name: string, suffix: string, symbolsDirectories?: string | string[]) {
   let result;
   let directories = getValidDirectories(symbolsDirectories);
   for (let symbolsDirectory of directories) {
     if (symbolsDirectory != null) {
-      result = loadSymbol(symbolsDirectory, name);
+      result = loadSymbol(symbolsDirectory, name, suffix);
       if (result != null) {
         return result;
       }
@@ -90,12 +89,13 @@ function transformName(name: string, suffix: string) {
   return result[0].toUpperCase() + result.substring(1, name.length) + suffix;
 }
 
-function loadSymbol(directory: string, symbolName: string) {
+function loadSymbol(directory: string, symbolName: string, suffix: string) {
+  const camelizedName = transformName(symbolName, suffix);
   if (fs.existsSync(directory)) {
     const symbolModule = require(directory);
     if (symbolModule) {
       return symbolModule.filter(symbol => {
-        if (symbol.name === symbolName) {
+        if (symbol.name === camelizedName || symbol.RULE_NAME === symbolName) {
           return true;
         }
         return false;
