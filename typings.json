@@ -3,6 +3,7 @@
   "dependencies": {},
   "globalDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160317120654",
+    "chalk": "registry:dt/chalk#0.4.0+20160317120654",
     "colors": "registry:dt/colors#0.6.0-1+20160501135139",
     "diff": "registry:dt/diff#0.0.0+20160318080727",
     "glob": "registry:dt/glob#5.0.10+20160317120654",

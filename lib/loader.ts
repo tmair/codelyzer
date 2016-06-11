@@ -10,6 +10,23 @@ export interface IEnableDisablePosition {
   position: number;
 }
 
+export function loadFormatter(name: string, formatterDirectories?: string | string[]) {
+  let camelizedName = transformName(name, 'Formatter');
+
+  let Formatter;
+  let directories = getValidDirectories(formatterDirectories);
+
+  for (let formattersDirectory of directories) {
+    if (formattersDirectory != null) {
+      Formatter = findSymbol(camelizedName, formattersDirectory);
+      if (Formatter !== null) {
+        return new Formatter;
+      }
+    }
+  }
+  return undefined;
+}
+
 export function loadReporter(name: string, reportersDirectories?: string | string[]) {
   let camelizedName = transformName(name, 'Reporter');
 

@@ -4,5 +4,6 @@
     "use-input-property-decorator": true
   },
   "rules_directories": ["./rules"],
-  "reporters_directories": ["./lib/reporters"]
+  "reporters_directories": ["./lib/reporters"],
+  "formatters_directories": ["./lib/formatters"]
 }

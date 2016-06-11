@@ -16,23 +16,26 @@ function getFixes(match: Match, choses: string[]) {
   return replacements.sort((a, b) => b.start - a.start)
 }
 
-async function processFile(filename: string) {
-  if (!fs.existsSync(filename)) {
-    console.error(`Unable to open file: ${filename}`);
-    process.exit(1);
-  }
+function lint(config, filename: string) {
   const contents = fs.readFileSync(filename, 'utf8');
-  const configuration = findConfiguration('codelyzer.json', filename);
-  const codelyzer = new Codelyzer(filename, contents, configuration);
+  const codelyzer = new Codelyzer(filename, contents, config);
+  const result = codelyzer.lint();
+  console.log(result.formatter.format(result.matches));
+}
+
+async function lintAndRefactor(config, filename: string) {
+  const contents = fs.readFileSync(filename, 'utf8');
+  const codelyzer = new Codelyzer(filename, contents, config);
   const generator = codelyzer.process();
 
   let next;
   let fixed = contents;
 
   next = generator.next();
+
   while (!next.done) {
     let { reporter, match } = next.value;
-    let res = await reporter.report(match, true);
+    let res = await reporter.report(match, false);
     let fixes = getFixes(match, res.refactoring);
     if (fixes.length > 0) {
       fixes.forEach(r => fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end));
@@ -40,6 +43,19 @@ async function processFile(filename: string) {
     }
     fs.writeFileSync(filename, fixed);
     next = generator.next();
+  }
+}
+
+function processFile(filename: string) {
+  if (!fs.existsSync(filename)) {
+    console.error(`Unable to open file: ${filename}`);
+    process.exit(1);
+  }
+  const config = findConfiguration('codelyzer.json', filename);
+  if (argv['lint-only']) {
+    lint(config, filename);
+  } else {
+    lintAndRefactor(config, filename);
   }
 };
 
