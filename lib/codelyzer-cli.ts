@@ -8,14 +8,6 @@ const argv = require('yargs').argv;
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 
-function getFixes(match: Match, choses: string[]) {
-  let replacements: Replacement[] = [];
-  match.fixes
-    .filter(f => choses.indexOf(f.description) >= 0)
-    .forEach(f => replacements = replacements.concat(f.replacements));
-  return replacements.sort((a, b) => b.start - a.start)
-}
-
 function lint(config, filename: string) {
   const contents = fs.readFileSync(filename, 'utf8');
   const codelyzer = new Codelyzer(filename, contents, config);
@@ -27,21 +19,13 @@ async function lintAndRefactor(config, filename: string) {
   const contents = fs.readFileSync(filename, 'utf8');
   const codelyzer = new Codelyzer(filename, contents, config);
   const generator = codelyzer.process();
-
   let next;
-  let fixed = contents;
-
   next = generator.next();
-
   while (!next.done) {
     let { reporter, match } = next.value;
     let res = await reporter.report(match, false);
-    let fixes = getFixes(match, res.refactoring);
-    if (fixes.length > 0) {
-      fixes.forEach(r => fixed = fixed.slice(0, r.start) + r.replaceWith + fixed.slice(r.end));
-      console.log(`Writing in file: "${chalk.yellow(filename)}".`);
-    }
-    fs.writeFileSync(filename, fixed);
+    let currentRes = generator.next(res.refactoring);
+    fs.writeFileSync(filename, currentRes.value);
     next = generator.next();
   }
 }

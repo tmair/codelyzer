@@ -40,7 +40,8 @@ export class Codelyzer {
     };
   }
 
-  public *process() {
+  public *process(): any {
+
     const matches: Match[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
     const options = this.options;
@@ -50,12 +51,24 @@ export class Codelyzer {
       const ruleMatches = rule.apply(sourceFile);
       for (let match of ruleMatches) {
         if (!this.containsMatch(matches, match)) {
-          yield { reporter, match };
+          let choices = yield { reporter, match };
+          let fixes = this.getFixes(match, choices);
+          if (fixes.length > 0) {
+            fixes.forEach(r =>
+              this.source = this.source.slice(0, r.start) + r.replaceWith + this.source.slice(r.end));
+          }
+          yield this.source;
         }
       }
     }
   }
-
+  private getFixes(match: Match, choices: string[]) {
+    let replacements: Replacement[] = [];
+    match.fixes
+      .filter(f => choices.indexOf(f.description) >= 0)
+      .forEach(f => replacements = replacements.concat(f.replacements));
+    return replacements.sort((a, b) => b.start - a.start)
+  }
   private getRules() {
     const sourceFile = getSourceFile(this.fileName, this.source);
     const options = this.options;
