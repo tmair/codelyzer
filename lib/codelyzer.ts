@@ -55,7 +55,6 @@ export class Codelyzer {
               this.source = this.source.slice(0, r.start) + r.replaceWith + this.source.slice(r.end));
           }
           yield this.source;
-          console.log(this.source);
           sourceFile = getSourceFile(this.fileName, this.source);
         }
       }
