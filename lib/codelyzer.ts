@@ -43,8 +43,9 @@ export class Codelyzer {
     const enabledRules = this.getRules();
     let sourceFile = getSourceFile(this.fileName, this.source);
     for (let rule of enabledRules) {
+      // Workaround. Will not work if the fixes have intersection.
+      // In the perfect scenario we need to yiled on each found match.
       const ruleMatches = this.sortMatches(rule.apply(sourceFile));
-      //const ruleMatches = rule.apply(sourceFile);
       for (let match of ruleMatches) {
         if (!this.containsMatch(matches, match)) {
           let choices = yield { match };
