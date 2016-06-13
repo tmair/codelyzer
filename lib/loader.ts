@@ -4,8 +4,8 @@ import {IRule, IDisabledInterval} from './language';
 
 const camelize = require('underscore.string').camelize;
 
-interface SymbolEqualityPredicate {
-  (ctr: any):  boolean;
+export interface SymbolEqualityPredicate {
+  (ctr: any, name?: string):  boolean;
 }
 
 function loadInternalSymbol(name: string, dirs: string | string[], predicate: SymbolEqualityPredicate) {
@@ -23,21 +23,24 @@ function loadInternalSymbol(name: string, dirs: string | string[], predicate: Sy
 }
 
 export function loadRule(name: string, rulesDirectories: string | string[]) {
-  return loadInternalSymbol(name, rulesDirectories, (ctr: any) => {
-    return ctr.name === transformName(name, 'Rule') || ctr.RULE_NAME === name;
+  return loadInternalSymbol(name, rulesDirectories, (ctr: any, symbolName?: string) => {
+    const normalized = transformName(name, 'Rule');
+    return ctr.name === normalized || ctr.RULE_NAME === name || symbolName === normalized;
   });
 }
 
 export function loadFormatter(name: string, formatterDirectories: string | string[]) {
-  let Formatter = loadInternalSymbol(name, formatterDirectories, (ctr: any) => {
-    return ctr.name === transformName(name, 'Formatter') || ctr.FORMATTER_NAME === name;
+  let Formatter = loadInternalSymbol(name, formatterDirectories, (ctr: any, symbolName?: string) => {
+    const normalized = transformName(name, 'Formatter');
+    return ctr.name === normalized || ctr.FORMATTER_NAME === name || symbolName === normalized;
   });
   return new Formatter;
 }
 
 export function loadReporter(name: string, reportersDirectories: string | string[]) {
-  let Reporter = loadInternalSymbol(name, reportersDirectories, (ctr: any) => {
-    return ctr.name === transformName(name, 'Reporter') || ctr.REPORTER_NAME === name;
+  let Reporter = loadInternalSymbol(name, reportersDirectories, (ctr: any, symbolName?: string) => {
+    const normalized = transformName(name, 'Reporter');
+    return ctr.name === normalized || ctr.REPORTER_NAME === name || symbolName === normalized;
   });
   return new Reporter;
 }
@@ -69,7 +72,15 @@ function loadSymbol(directory: string, symbolName: string, predicate: SymbolEqua
   if (fs.existsSync(directory)) {
     const symbolModule = require(directory);
     if (symbolModule) {
-      return symbolModule.filter(symbol =>  predicate(symbol)).pop();
+      const symbol = Object.keys(symbolModule)
+        .map(name => { return { name, symbol: symbolModule[name] }})
+        .filter(({name, symbol}) => predicate(symbol, name))
+        .pop();
+      if (!symbol) {
+        throw new Error(`Cannot find ${symbolName}`);
+      } else {
+        return symbol.symbol;
+      }
     }
   }
   return undefined;

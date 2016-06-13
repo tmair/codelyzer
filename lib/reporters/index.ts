@@ -1,6 +1,2 @@
-import {DefaultReporter} from './default-reporter';
-
-export = [
-  DefaultReporter
-];
+export {DefaultReporter} from './default-reporter';
 

@@ -1,8 +1,3 @@
-import {ImportDestructuring} from './import-destructuring-spacing-rule';
-import {UseInputPropertyDecoratorRule} from './use-input-property-decorator-rule';
-
-export = [
-  ImportDestructuring,
-  UseInputPropertyDecoratorRule
-];
+export {ImportDestructuring} from './import-destructuring-spacing-rule';
+export {UseInputPropertyDecoratorRule} from './use-input-property-decorator-rule';
 

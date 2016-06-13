@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-      "experimentalDecorators": true,
-      "target": "es2015",
-      "module": "commonjs",
-      "declaration": false,
-      "noImplicitAny": false,
-      "removeComments": true,
-      "noLib": false,
-      "outDir": "./dist"
+    "experimentalDecorators": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "noLib": false,
+    "outDir": "./dist/esm"
   },
   "exclude": [
-      "typings/browser.d.ts",
-      "typings/browser",
-      "node_modules",
-      "test"
+    "node_modules",
+    "test",
+    "dist"
   ]
 }

@@ -1,6 +1,2 @@
-import {CompactFormatter} from './compact-formatter';
-
-export = [
-  CompactFormatter
-];
+export {CompactFormatter as Baba} from './compact-formatter';
 
