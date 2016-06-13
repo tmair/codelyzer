@@ -52,17 +52,34 @@ function lint(rules: RulesMap, formatter: Formatter, filename: string) {
 }
 
 async function lintAndRefactor(rules: RulesMap, reporter: Reporter, filename: string) {
-  const contents = fs.readFileSync(filename, 'utf8');
+//  const contents = fs.readFileSync(filename, 'utf8');
+  const contents = `import {Input, Output, Component} from '@angular/core';
+
+@Component({
+  selector: 'codelyzer-tabs',
+  template: '',
+  inputs: ['name', 'age', 'time : timeInterval']
+})
+class TabsComponent {
+  //...
+}
+
+const bar = 42
+
+var fun = function () {
+  return 42
+}`;
+
   const codelyzer = new Codelyzer(filename, contents, rules);
   const generator = codelyzer.process();
-  let next;
-  next = generator.next();
+  let next: any;
+  next = generator.next(contents);
   while (!next.done) {
     let { match } = next.value;
     let res = await reporter.report(match);
     let currentRes = generator.next(res.refactoring);
     fs.writeFileSync(filename, currentRes.value);
-    next = generator.next();
+    next = generator.next(currentRes.value);
   }
 }
 

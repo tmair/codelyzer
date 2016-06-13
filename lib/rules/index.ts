@@ -1,3 +1,3 @@
-export {ImportDestructuring} from './import-destructuring-spacing-rule';
-export {UseInputPropertyDecoratorRule} from './use-input-property-decorator-rule';
+export * from './semicolon';
+export * from './import-destructuring-spacing';
 

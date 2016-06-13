@@ -1,4 +1,4 @@
-import {Match, AbstractRule, getSourceFile, Replacement, IDisabledInterval} from './language';
+import {Match, AbstractRule, getSourceFile, Fix, Replacement, IDisabledInterval} from './language';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
 import {
   ICodelyzerOptionsRaw,
@@ -40,10 +40,11 @@ export class Codelyzer {
 
   public *process(): any {
     const matches: Match[] = [];
-    const sourceFile = getSourceFile(this.fileName, this.source);
     const enabledRules = this.getRules();
+    let sourceFile = getSourceFile(this.fileName, this.source);
     for (let rule of enabledRules) {
-      const ruleMatches = rule.apply(sourceFile);
+      const ruleMatches = this.sortMatches(rule.apply(sourceFile));
+      //const ruleMatches = rule.apply(sourceFile);
       for (let match of ruleMatches) {
         if (!this.containsMatch(matches, match)) {
           let choices = yield { match };
@@ -53,6 +54,8 @@ export class Codelyzer {
               this.source = this.source.slice(0, r.start) + r.replaceWith + this.source.slice(r.end));
           }
           yield this.source;
+          console.log(this.source);
+          sourceFile = getSourceFile(this.fileName, this.source);
         }
       }
     }
@@ -61,8 +64,24 @@ export class Codelyzer {
   private getFixes(match: Match, choices: string[]) {
     return match.fixes
       .filter(f => choices.indexOf(f.description) >= 0)
-      .reduce((accum, f) => accum.concat(f.replacements), [])
-      .sort((a, b) => b.start - a.start)
+      // Already sorted
+      .reduce((accum, f) => accum.concat(f.replacements), []);
+  }
+
+  private sortMatches(matches: Match[]) {
+    const sortReplacements = (fix: Fix): Fix => {
+      fix.replacements = fix.replacements.sort((a, b) => b.start - a.start);
+      return fix;
+    };
+    const sortFixes = (match: Match): Match => {
+      match.fixes.forEach(sortReplacements);
+      match.fixes = match.fixes.sort((a, b) => b.replacements[0].start - a.replacements[0].start);
+      return match;
+    };
+    const nofixes = matches.filter((m: Match) => !m.fixes.length);
+    return nofixes.concat(matches
+      .filter((m: Match) => m.fixes.length > 0)
+      .sort((a, b) => b.fixes[0].replacements[0].start - a.fixes[0].replacements[0].start));
   }
 
   private getRules() {
