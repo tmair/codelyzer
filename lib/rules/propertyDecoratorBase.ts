@@ -1,8 +1,6 @@
-import * as Lint from 'tslint/lib/lint';
 import {sprintf} from 'sprintf-js';
-
 import * as ts from 'typescript';
-import {AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
+import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
 
 import SyntaxKind = require('./util/syntaxKind');
 
@@ -23,13 +21,13 @@ export class UsePropertyDecorator extends AbstractRule {
     return sprintf(config.errorMessage, decoratorName, className, config.propertyName, decorators);
   }
 
-  constructor(private config: IUsePropertyDecoratorConfig, ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[]) {
+  constructor(private config: IUsePropertyDecoratorConfig, ruleName: string, value: any, disabledIntervals: IDisabledInterval[]) {
     super(ruleName, value, disabledIntervals);
   }
 
   public apply(sourceFile: ts.SourceFile): Match[] {
     let documentRegistry = ts.createDocumentRegistry();
-    let languageServiceHost = Lint.createLanguageServiceHost('file.ts', sourceFile.getFullText());
+    let languageServiceHost = createLanguageServiceHost('file.ts', sourceFile.getFullText());
     return this.applyWithWalker(
       new DirectiveMetadataWalker(sourceFile,
         this.getOptions(),
@@ -41,7 +39,7 @@ class DirectiveMetadataWalker extends RefactorRuleWalker {
   private languageService : ts.LanguageService;
   private typeChecker : ts.TypeChecker;
 
-  constructor(sourceFile: ts.SourceFile, options: Lint.IOptions,
+  constructor(sourceFile: ts.SourceFile, options: IOptions,
     languageService : ts.LanguageService, private config: IUsePropertyDecoratorConfig) {
       super(sourceFile, options);
       this.languageService = languageService;

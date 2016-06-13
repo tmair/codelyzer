@@ -1,11 +1,11 @@
-import * as Lint from 'tslint/lib/lint';
+import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import SyntaxKind = require('./util/syntaxKind');
 
-export class Rule extends Lint.Rules.AbstractRule {
+export class Rule extends AbstractRule {
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new ClassMetadataWalker(sourceFile,
                 this.getOptions()));
@@ -15,7 +15,7 @@ export class Rule extends Lint.Rules.AbstractRule {
     static PIPE_INTERFACE_NAME = 'PipeTransform';
 }
 
-export class ClassMetadataWalker extends Lint.RuleWalker {
+export class ClassMetadataWalker extends RefactorRuleWalker {
 
     visitClassDeclaration(node:ts.ClassDeclaration) {
         let decorators = node.decorators;
@@ -24,8 +24,8 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
             if (pipes.length !== 0) {
                 let className:string = node.name.text;
                 if(!this.hasIPipeTransform(node)){
-                    this.addFailure(
-                        this.createFailure(
+                    this.addMatch(
+                        this.createMatch(
                             node.getStart(),
                             node.getWidth(),
                             sprintf.apply(this, [Rule.FAILURE,className])));
@@ -36,7 +36,7 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
     }
 
     private hasIPipeTransform(node:ts.ClassDeclaration):boolean{
-        let interfaces = [];
+        let interfaces: any = [];
         if (node.heritageClauses) {
             let interfacesClause = node.heritageClauses
                 .filter(h=>h.token === SyntaxKind.current().ImplementsKeyword);

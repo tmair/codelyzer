@@ -1,9 +1,8 @@
-import * as Lint from 'tslint/lib/lint';
-
+import {IDisabledInterval} from '../language';
 import {UsePropertyDecorator} from './propertyDecoratorBase';
 
 export class Rule extends UsePropertyDecorator {
-  constructor(ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[]) {
+  constructor(ruleName: string, value: any, disabledIntervals: IDisabledInterval[]) {
     super({
       decoratorName: ['HostBindings', 'HostListeners'],
       propertyName: 'host',

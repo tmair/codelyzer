@@ -1,9 +1,9 @@
-import * as Lint from 'tslint/lib/lint';
-
 import {UsePropertyDecorator} from './propertyDecoratorBase';
 
+import {IDisabledInterval} from '../language';
+
 export class UseInputPropertyDecoratorRule extends UsePropertyDecorator {
-  constructor(ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[]) {
+  constructor(ruleName: string, value: any, disabledIntervals: IDisabledInterval[]) {
     super({
       decoratorName: 'Input',
       propertyName: 'inputs',

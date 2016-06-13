@@ -1,5 +1,5 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
+import {RefactorRuleWalker} from '../../language';
 
 const getDecoratorName = (decorator: ts.Decorator) => {
   let baseExpr = <any>decorator.expression || {};
@@ -11,10 +11,10 @@ const getDecoratorStringArgs = (decorator: ts.Decorator) => {
   let baseExpr = <any>decorator.expression || {};
   let expr = baseExpr.expression || {};
   let args = baseExpr.arguments || [];
-  return args.map(a => (a.kind === ts.SyntaxKind.StringLiteral) ? a.text : null);
+  return args.map((a: any) => (a.kind === ts.SyntaxKind.StringLiteral) ? a.text : null);
 };
 
-export class Ng2Walker extends Lint.RuleWalker {
+export class Ng2Walker extends RefactorRuleWalker {
   visitClassDeclaration(declaration: ts.ClassDeclaration) {
     (declaration.decorators || []).forEach(this.visitClassDecorator.bind(this));
     super.visitClassDeclaration(declaration);

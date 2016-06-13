@@ -1,11 +1,12 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import {Ng2Walker} from "./util/ng2Walker";
 
-export class Rule extends Lint.Rules.AbstractRule {
+import {AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+export class Rule extends AbstractRule {
+
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new InputMetadataWalker(sourceFile,
                 this.getOptions()));
@@ -25,8 +26,8 @@ export class InputMetadataWalker extends Ng2Walker {
         if (args.length != 0 && memberName != args[0]) {
             let failureConfig:string[] = [className, memberName, memberName];
             failureConfig.unshift(Rule.FAILURE_STRING);
-            this.addFailure(
-                this.createFailure(
+            this.addMatch(
+                this.createMatch(
                     property.getStart(),
                     property.getWidth(),
                     sprintf.apply(this, failureConfig)));

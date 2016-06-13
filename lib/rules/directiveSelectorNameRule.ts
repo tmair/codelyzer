@@ -1,11 +1,11 @@
-import * as Lint from 'tslint/lib/lint';
 import {SelectorRule, COMPONENT_TYPE} from './selectorNameBase';
 import {SelectorValidator} from './util/selectorValidator';
+import {IDisabledInterval} from '../language';
 
 const FAILURE_STRING = 'The selector of the directive "%s" should be named %s ($$02-06$$)';
 
 export class Rule extends SelectorRule {
-  constructor(ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[]) {
+  constructor(ruleName: string, value: any, disabledIntervals: IDisabledInterval[]) {
     let validator = SelectorValidator.camelCase;
     if (value[1] === 'kebab-case') {
       validator = SelectorValidator.kebabCase;

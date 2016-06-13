@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
-import * as Lint from 'tslint/lib/lint';
 import {sprintf} from 'sprintf-js';
+
+import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
 
 import SyntaxKind = require('./util/syntaxKind');
 
@@ -10,15 +11,15 @@ export enum COMPONENT_TYPE {
   ANY
 };
 
-export abstract class SelectorRule extends Lint.Rules.AbstractRule {
-  constructor(ruleName: string, value: any, disabledIntervals: Lint.IDisabledInterval[],
+export abstract class SelectorRule extends AbstractRule {
+  constructor(ruleName: string, value: any, disabledIntervals: IDisabledInterval[],
     private validator: Function, private failureString: string, private target: COMPONENT_TYPE = COMPONENT_TYPE.ANY) {
     super(ruleName, value, disabledIntervals);
   }
 
-  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+  public apply(sourceFile: ts.SourceFile): Match[] {
     let documentRegistry = ts.createDocumentRegistry();
-    let languageServiceHost = Lint.createLanguageServiceHost('file.ts', sourceFile.getFullText());
+    let languageServiceHost = createLanguageServiceHost('file.ts', sourceFile.getFullText());
     let languageService : ts.LanguageService = ts.createLanguageService(languageServiceHost, documentRegistry);
     return this.applyWithWalker(
       new SelectorNameValidatorWalker(
@@ -27,7 +28,7 @@ export abstract class SelectorRule extends Lint.Rules.AbstractRule {
         this));
   }
 
-  public getFailureString(failureConfig): string {
+  public getFailureString(failureConfig: any): string {
     return sprintf(this.failureString, failureConfig.className, this.getOptions().ruleArguments[0], failureConfig.selector);
   }
 
@@ -40,7 +41,7 @@ export abstract class SelectorRule extends Lint.Rules.AbstractRule {
   }
 }
 
-class SelectorNameValidatorWalker extends Lint.RuleWalker {
+class SelectorNameValidatorWalker extends RefactorRuleWalker {
   private languageService : ts.LanguageService;
   private typeChecker : ts.TypeChecker;
 
@@ -75,7 +76,7 @@ class SelectorNameValidatorWalker extends Lint.RuleWalker {
         let p = <any>prop;
         if (isSupportedKind(p.initializer.kind) && !this.rule.validate(p.initializer.text)) {
           let error = this.rule.getFailureString({ selector: p.initializer.text, className });
-          this.addFailure(this.createFailure(p.initializer.getStart(), p.initializer.getWidth(), error));
+          this.addMatch(this.createMatch(p.initializer.getStart(), p.initializer.getWidth(), error));
         }
       });
     }

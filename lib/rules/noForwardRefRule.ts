@@ -1,11 +1,12 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import SyntaxKind = require('./util/syntaxKind');
 
-export class Rule extends Lint.Rules.AbstractRule {
+import {AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+export class Rule extends AbstractRule {
+
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new ExpressionCallMetadataWalker(sourceFile,
                 this.getOptions()));
@@ -15,14 +16,14 @@ export class Rule extends Lint.Rules.AbstractRule {
     static FAILURE_IN_VARIABLE:string = 'Avoid using forwardRef in variable "%s"';
 }
 
-export class ExpressionCallMetadataWalker extends Lint.RuleWalker {
+export class ExpressionCallMetadataWalker extends RefactorRuleWalker {
 
     visitCallExpression(node:ts.CallExpression) {
         this.validateCallExpression(node);
         super.visitCallExpression(node);
     }
 
-    private validateCallExpression(callExpression) {
+    private validateCallExpression(callExpression: any) {
         if (callExpression.expression.text === 'forwardRef') {
             let currentNode:any = callExpression;
             while (currentNode.parent.parent) {
@@ -34,8 +35,8 @@ export class ExpressionCallMetadataWalker extends Lint.RuleWalker {
             }else{
                 failureConfig=[Rule.FAILURE_IN_CLASS,currentNode.name.text];
             }
-            this.addFailure(
-                this.createFailure(
+            this.addMatch(
+                this.createMatch(
                     callExpression.getStart(),
                     callExpression.getWidth(),
                     sprintf.apply(this, failureConfig)));

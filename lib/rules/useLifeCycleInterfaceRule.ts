@@ -1,11 +1,12 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import SyntaxKind = require('./util/syntaxKind');
 
-export class Rule extends Lint.Rules.AbstractRule {
+import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+export class Rule extends AbstractRule {
+
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new ClassMetadataWalker(sourceFile,
                 this.getOptions()));
@@ -30,13 +31,13 @@ export class Rule extends Lint.Rules.AbstractRule {
 
 }
 
-export class ClassMetadataWalker extends Lint.RuleWalker {
+export class ClassMetadataWalker extends RefactorRuleWalker {
 
     visitClassDeclaration(node:ts.ClassDeclaration) {
         let syntaxKind = SyntaxKind.current();
         let className = node.name.text;
 
-        let interfaces = [];
+        let interfaces: any = [];
         if (node.heritageClauses) {
             let interfacesClause = node.heritageClauses.filter(h=>h.token === syntaxKind.ImplementsKeyword);
             if (interfacesClause.length !== 0) {
@@ -47,8 +48,8 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
         let missing:Array<string> = this.extractMissing(node.members, syntaxKind, interfaces);
 
         if (missing.length !== 0) {
-            this.addFailure(
-                this.createFailure(
+            this.addMatch(
+                this.createMatch(
                     node.getStart(),
                     node.getWidth(),
                     sprintf.apply(this, this.formatFailure(className, missing))));

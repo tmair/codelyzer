@@ -1,18 +1,17 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import SyntaxKind = require('./util/syntaxKind');
 import {SelectorValidator} from "./util/selectorValidator";
 
-export class Rule extends Lint.Rules.AbstractRule {
+import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval} from '../language';
 
-
+export class Rule extends AbstractRule {
     public prefix: string;
     public hasPrefix: boolean;
     private prefixChecker: Function;
     private validator: Function;
 
-    constructor(ruleName:string, value:any, disabledIntervals:Lint.IDisabledInterval[]) {
+    constructor(ruleName:string, value:any, disabledIntervals: IDisabledInterval[]) {
         super(ruleName, value, disabledIntervals);
         if (value[1] === 'camelCase') {
             this.validator = SelectorValidator.camelCase;
@@ -24,7 +23,7 @@ export class Rule extends Lint.Rules.AbstractRule {
         }
     }
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new ClassMetadataWalker(sourceFile, this));
     }
@@ -44,7 +43,7 @@ export class Rule extends Lint.Rules.AbstractRule {
         ' be named camelCase with prefix %s, however its value is "%s".';
 }
 
-export class ClassMetadataWalker extends Lint.RuleWalker {
+export class ClassMetadataWalker extends RefactorRuleWalker {
 
     constructor(sourceFile:ts.SourceFile, private rule:Rule) {
         super(sourceFile, rule.getOptions());
@@ -52,7 +51,7 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
 
     visitClassDeclaration(node:ts.ClassDeclaration) {
         let className = node.name.text;
-        let decorators = node.decorators || [];
+        let decorators: any[] = node.decorators || [];
         decorators.filter(d=> {
             let baseExpr = <any>d.expression || {};
             return baseExpr.expression.text === 'Pipe'
@@ -63,7 +62,7 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
     private validateProperties(className:string, pipe:any) {
         let argument = this.extractArgument(pipe);
         if (argument.kind === SyntaxKind.current().ObjectLiteralExpression) {
-            argument.properties.filter(n=>n.name.text === 'name')
+            argument.properties.filter((n: any) => n.name.text === 'name')
                 .forEach(this.validateProperty.bind(this, className))
         }
     }
@@ -79,8 +78,8 @@ export class ClassMetadataWalker extends Lint.RuleWalker {
         let isValidName:boolean = this.rule.validateName(propName);
         let isValidPrefix:boolean = (this.rule.hasPrefix?this.rule.validatePrefix(propName):true);
         if (!isValidName || !isValidPrefix) {
-            this.addFailure(
-                this.createFailure(
+            this.addMatch(
+                this.createMatch(
                     property.getStart(),
                     property.getWidth(),
                     sprintf.apply(this, this.createFailureArray(className, propName))));

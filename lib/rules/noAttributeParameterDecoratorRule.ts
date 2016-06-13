@@ -1,11 +1,11 @@
-import * as Lint from 'tslint/lib/lint';
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 import SyntaxKind = require('./util/syntaxKind');
+import {IOptions, AbstractRule, RefactorRuleWalker, Match, Fix} from '../language';
 
-export class Rule extends Lint.Rules.AbstractRule {
+export class Rule extends AbstractRule {
 
-    public apply(sourceFile:ts.SourceFile):Lint.RuleFailure[] {
+    public apply(sourceFile:ts.SourceFile): Match[] {
         return this.applyWithWalker(
             new ConstructorMetadataWalker(sourceFile,
                 this.getOptions()));
@@ -18,7 +18,7 @@ export class Rule extends Lint.Rules.AbstractRule {
 
 }
 
-export class ConstructorMetadataWalker extends Lint.RuleWalker {
+export class ConstructorMetadataWalker extends RefactorRuleWalker {
 
     visitConstructorDeclaration(node:ts.ConstructorDeclaration) {
         let syntaxKind = SyntaxKind.current();
@@ -33,18 +33,18 @@ export class ConstructorMetadataWalker extends Lint.RuleWalker {
         super.visitConstructorDeclaration(node);
     }
 
-    validateParameter(className:string, parameter) {
+    validateParameter(className:string, parameter: any) {
         let parameterName = (<ts.Identifier>parameter.name).text;
         if (parameter.decorators) {
-            parameter.decorators.forEach((decorator)=> {
+            parameter.decorators.forEach((decorator: any) => {
                 let baseExpr = <any>decorator.expression || {};
                 let expr = baseExpr.expression || {};
                 let name = expr.text;
                 if (name == 'Attribute') {
                     let failureConfig:string[] = [className, parameterName, parameterName];
                     failureConfig.unshift(Rule.FAILURE_STRING);
-                    this.addFailure(
-                        this.createFailure(
+                    this.addMatch(
+                        this.createMatch(
                             parameter.getStart(),
                             parameter.getWidth(),
                             sprintf.apply(this, failureConfig)));
