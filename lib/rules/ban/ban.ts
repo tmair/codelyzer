@@ -66,6 +66,9 @@ export class BanFunctionWalker extends RefactorRuleWalker {
                             expression.getStart(),
                             expression.getWidth(),
                             `${Rule.FAILURE_STRING_PART}${invocation}`,
+                            // Can replace the entire statement
+                            // because it won't be valid without the
+                            // removed expression.
                             this._getFix(node.parent, invocation)
                         );
                         this.addMatch(failure);
