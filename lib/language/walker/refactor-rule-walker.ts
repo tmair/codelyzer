@@ -8,11 +8,10 @@ export class RefactorRuleWalker extends SyntaxWalker {
   private position: number;
   private options: any[];
   private matches: Match[];
-  private sourceFile: ts.SourceFile;
   private disabledIntervals: IDisabledInterval[];
   private ruleName: string;
 
-  constructor(sourceFile: ts.SourceFile, options: IOptions) {
+  constructor(private sourceFile: ts.SourceFile, options: IOptions) {
     super();
 
     this.position = 0;
@@ -22,6 +21,10 @@ export class RefactorRuleWalker extends SyntaxWalker {
     this.limit = this.sourceFile.getFullWidth();
     this.disabledIntervals = options.disabledIntervals;
     this.ruleName = options.ruleName;
+  }
+
+  public walk(node: ts.Node = this.getSourceFile()) {
+    super.walk(node);
   }
 
   public getSourceFile(): ts.SourceFile {
@@ -68,3 +71,4 @@ export class RefactorRuleWalker extends SyntaxWalker {
     return this.matches.some(m => m.equals(match));
   }
 }
+
