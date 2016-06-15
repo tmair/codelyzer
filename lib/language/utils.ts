@@ -16,7 +16,7 @@
  */
 
 import * as ts from 'typescript';
-import {IDisabledInterval, Match} from './rule';
+import {IDisabledInterval, RuleFailure} from './rule';
 
 function normalizeStringWin32(path, allowAboveRoot) {
   var res = '';
@@ -106,7 +106,7 @@ function normalize(path) {
         // Matched double path separator at beginning
         var j = 2;
         var last = j;
-        // Match 1 or more non-path separators
+        // RuleFailure 1 or more non-path separators
         for (; j < len; ++j) {
           code = path.charCodeAt(j);
           if (code === 47/*/*/ || code === 92/*\*/)
@@ -116,7 +116,7 @@ function normalize(path) {
           const firstPart = path.slice(last, j);
           // Matched!
           last = j;
-          // Match 1 or more path separators
+          // RuleFailure 1 or more path separators
           for (; j < len; ++j) {
             code = path.charCodeAt(j);
             if (code !== 47/*/*/ && code !== 92/*\*/)
@@ -125,7 +125,7 @@ function normalize(path) {
           if (j < len && j !== last) {
             // Matched!
             last = j;
-            // Match 1 or more non-path separators
+            // RuleFailure 1 or more non-path separators
             for (; j < len; ++j) {
               code = path.charCodeAt(j);
               if (code === 47/*/*/ || code === 92/*\*/)
@@ -241,7 +241,7 @@ export function createCompilerOptions(): ts.CompilerOptions {
   };
 }
 
-export function doesIntersect(match: Match, disabledIntervals: IDisabledInterval[]) {
+export function doesIntersect(match: RuleFailure, disabledIntervals: IDisabledInterval[]) {
   return disabledIntervals.some((interval) => {
     const maxStart = Math.max(interval.startPosition, match.getStartPosition().getPosition());
     const minEnd = Math.min(interval.endPosition, match.getEndPosition().getPosition());

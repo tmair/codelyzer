@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import {sprintf} from 'sprintf-js';
 
-import {AbstractRule, RefactorRuleWalker, Match, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
+import {AbstractRule, RuleWalker, RuleFailure, Fix, IDisabledInterval, IOptions, createLanguageServiceHost} from '../language';
 
 import SyntaxKind = require('./util/syntaxKind');
 
@@ -17,7 +17,7 @@ export abstract class SelectorRule extends AbstractRule {
     super(ruleName, value, disabledIntervals);
   }
 
-  public apply(sourceFile: ts.SourceFile): Match[] {
+  public apply(sourceFile: ts.SourceFile): RuleFailure[] {
     let documentRegistry = ts.createDocumentRegistry();
     let languageServiceHost = createLanguageServiceHost('file.ts', sourceFile.getFullText());
     let languageService : ts.LanguageService = ts.createLanguageService(languageServiceHost, documentRegistry);
@@ -41,7 +41,7 @@ export abstract class SelectorRule extends AbstractRule {
   }
 }
 
-class SelectorNameValidatorWalker extends RefactorRuleWalker {
+class SelectorNameValidatorWalker extends RuleWalker {
   private languageService : ts.LanguageService;
   private typeChecker : ts.TypeChecker;
 
@@ -76,7 +76,7 @@ class SelectorNameValidatorWalker extends RefactorRuleWalker {
         let p = <any>prop;
         if (isSupportedKind(p.initializer.kind) && !this.rule.validate(p.initializer.text)) {
           let error = this.rule.getFailureString({ selector: p.initializer.text, className });
-          this.addMatch(this.createMatch(p.initializer.getStart(), p.initializer.getWidth(), error));
+          this.addFailure(this.createFailure(p.initializer.getStart(), p.initializer.getWidth(), error));
         }
       });
     }

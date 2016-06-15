@@ -16,12 +16,12 @@
  */
 
 import * as ts from 'typescript';
-import {Match, AbstractRule, RefactorRuleWalker, Fix} from '../../language';
+import {RuleFailure, AbstractRule, RuleWalker, Fix} from '../../language';
 
 export class Rule extends AbstractRule {
     public static FAILURE_STRING_PART = 'Function invocation disallowed: ';
 
-    public apply(sourceFile: ts.SourceFile): Match[] {
+    public apply(sourceFile: ts.SourceFile): RuleFailure[] {
         const options = this.getOptions();
         const banFunctionWalker = new BanFunctionWalker(sourceFile, options);
         const functionsToBan = options.ruleArguments;
@@ -30,7 +30,7 @@ export class Rule extends AbstractRule {
     }
 }
 
-export class BanFunctionWalker extends RefactorRuleWalker {
+export class BanFunctionWalker extends RuleWalker {
     private bannedFunctions: string[][] = [];
 
     public addBannedFunction(bannedFunction: string[]) {
@@ -62,7 +62,7 @@ export class BanFunctionWalker extends RefactorRuleWalker {
                 for (const bannedFunction of this.bannedFunctions) {
                     if (leftSideExpression === bannedFunction[0] && rightSideExpression === bannedFunction[1]) {
                       const invocation = `${leftSideExpression}.${rightSideExpression}`;
-                        const failure = this.createMatch(
+                        const failure = this.createFailure(
                             expression.getStart(),
                             expression.getWidth(),
                             `${Rule.FAILURE_STRING_PART}${invocation}`,
@@ -71,7 +71,7 @@ export class BanFunctionWalker extends RefactorRuleWalker {
                             // removed expression.
                             this._getFix(node.parent, invocation)
                         );
-                        this.addMatch(failure);
+                        this.addFailure(failure);
                     }
                 }
             }

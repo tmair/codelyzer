@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import {RefactorRuleWalker} from '../walker';
-import {Match, IOptions, IRule, IDisabledInterval} from './';
+import {RuleWalker} from '../walker';
+import {RuleFailure, IOptions, IRule, IDisabledInterval} from './';
 
 export abstract class AbstractRule implements IRule {
   private options: IOptions;
@@ -27,9 +27,9 @@ export abstract class AbstractRule implements IRule {
     this.options.disabledIntervals = di;
   }
 
-  public abstract apply(sourceFile: ts.SourceFile): Match[];
+  public abstract apply(sourceFile: ts.SourceFile): RuleFailure[];
 
-  public applyWithWalker(walker: RefactorRuleWalker): Match[] {
+  public applyWithWalker(walker: RuleWalker): RuleFailure[] {
     walker.walk(walker.getSourceFile());
     return walker.getMatches();
   }

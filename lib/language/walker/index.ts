@@ -16,7 +16,7 @@
  */
 
 export * from './block-scope-aware-rule-walker';
-export * from './refactor-rule-walker';
+export * from './rule-walker';
 export * from './scope-aware-rule-walker';
 export * from './skippable-token-aware-rule-walker';
 export * from './syntax-walker';

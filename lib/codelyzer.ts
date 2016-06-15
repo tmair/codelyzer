@@ -1,4 +1,4 @@
-import {Match, AbstractRule, getSourceFile, Fix, Replacement, IDisabledInterval} from './language';
+import {RuleFailure, AbstractRule, getSourceFile, Fix, Replacement, IDisabledInterval} from './language';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
 import {
   ICodelyzerOptionsRaw,
@@ -24,7 +24,7 @@ export class Codelyzer {
       private rulesMap: RulesMap) {}
 
   public lint() {
-    const matches: Match[] = [];
+    const matches: RuleFailure[] = [];
     const sourceFile = getSourceFile(this.fileName, this.source);
     const enabledRules = this.getRules();
     for (let rule of enabledRules) {
@@ -39,7 +39,7 @@ export class Codelyzer {
   }
 
   public *process(): any {
-    const matches: Match[] = [];
+    const matches: RuleFailure[] = [];
     const enabledRules = this.getRules();
     let sourceFile = getSourceFile(this.fileName, this.source);
     for (let rule of enabledRules) {
@@ -61,26 +61,26 @@ export class Codelyzer {
     }
   }
 
-  private getFixes(match: Match, choices: string[]) {
+  private getFixes(match: RuleFailure, choices: string[]) {
     return match.fixes
       .filter(f => choices.indexOf(f.description) >= 0)
       // Already sorted
       .reduce((accum, f) => accum.concat(f.replacements), []);
   }
 
-  private sortMatches(matches: Match[]) {
+  private sortMatches(matches: RuleFailure[]) {
     const sortReplacements = (fix: Fix): Fix => {
       fix.replacements = fix.replacements.sort((a, b) => b.start - a.start);
       return fix;
     };
-    const sortFixes = (match: Match): Match => {
+    const sortFixes = (match: RuleFailure): RuleFailure => {
       match.fixes.forEach(sortReplacements);
       match.fixes = match.fixes.sort((a, b) => b.replacements[0].start - a.replacements[0].start);
       return match;
     };
-    const nofixes = matches.filter((m: Match) => !m.fixes.length);
+    const nofixes = matches.filter((m: RuleFailure) => !m.fixes.length);
     return nofixes.concat(matches
-      .filter((m: Match) => m.fixes.length > 0)
+      .filter((m: RuleFailure) => m.fixes.length > 0)
       .sort((a, b) => b.fixes[0].replacements[0].start - a.fixes[0].replacements[0].start));
   }
 
@@ -107,7 +107,7 @@ export class Codelyzer {
     return result.filter((r) => r.isEnabled());
   }
 
-  private containsMatch(matches: Match[], match: Match) {
+  private containsMatch(matches: RuleFailure[], match: RuleFailure) {
     return matches.some(m => m.equals(match));
   }
 }

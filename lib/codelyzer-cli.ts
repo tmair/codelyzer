@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as chalk from 'chalk';
-import {AbstractRule, Replacement, Match, Fix} from './language';
+import {AbstractRule, Replacement, RuleFailure, Fix} from './language';
 import {Reporter} from './reporters/reporter';
 import {Formatter} from './formatters/formatter';
 import {findConfiguration} from './utils';

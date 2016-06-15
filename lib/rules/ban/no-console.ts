@@ -17,11 +17,11 @@
 
 import * as ts from 'typescript';
 import * as BanRule from './ban';
-import {Match, AbstractRule, RefactorRuleWalker} from '../../language';
+import {RuleFailure, AbstractRule, RuleWalker} from '../../language';
 
 export class NoConsoleRule extends BanRule.Rule {
     public RULE_NAME = 'no-console';
-    public apply(sourceFile: ts.SourceFile): Match[] {
+    public apply(sourceFile: ts.SourceFile): RuleFailure[] {
         const options = this.getOptions();
         const consoleBanWalker = new BanRule.BanFunctionWalker(sourceFile, this.getOptions());
         for (const option of options.ruleArguments) {

@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 
-import {Match} from './match';
-import {RefactorRuleWalker} from '../walker';
+import {RuleFailure} from './match';
+import {RuleWalker} from '../walker';
 
 export interface IOptions {
   ruleArguments?: any[];
@@ -17,7 +17,7 @@ export interface IDisabledInterval {
 export interface IRule {
   getOptions(): IOptions;
   isEnabled(): boolean;
-  apply(sourceFile: ts.SourceFile): Match[];
-  applyWithWalker(walker: RefactorRuleWalker): Match[];
+  apply(sourceFile: ts.SourceFile): RuleFailure[];
+  applyWithWalker(walker: RuleWalker): RuleFailure[];
 }
 
