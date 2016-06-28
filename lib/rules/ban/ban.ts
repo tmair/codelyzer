@@ -16,14 +16,14 @@
  */
 
 import * as ts from 'typescript';
-import {RuleFailure, AbstractRule, RuleWalker, Fix} from '../../language';
+import {FailureHook, RuleFailure, AbstractRule, RuleWalker, Fix} from '../../language';
 
 export class Rule extends AbstractRule {
     public static FAILURE_STRING_PART = 'Function invocation disallowed: ';
 
-    public apply(sourceFile: ts.SourceFile): RuleFailure[] {
+    public apply(sourceFile: ts.SourceFile, hook: FailureHook): RuleFailure[] {
         const options = this.getOptions();
-        const banFunctionWalker = new BanFunctionWalker(sourceFile, options);
+        const banFunctionWalker = new BanFunctionWalker(sourceFile, options, hook);
         const functionsToBan = options.ruleArguments;
         functionsToBan.forEach((f) => banFunctionWalker.addBannedFunction(f));
         return this.applyWithWalker(banFunctionWalker);

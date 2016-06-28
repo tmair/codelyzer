@@ -1,6 +1,12 @@
 import * as ts from 'typescript';
+import {Reporter} from '../../reporters/reporter';
+import {BasicReporter} from '../../reporters';
 import {RuleWalker} from '../walker';
-import {RuleFailure, IOptions, IRule, IDisabledInterval} from './';
+import {RuleFailure, IOptions, IRule, IDisabledInterval} from './index';
+
+export interface FailureHook {
+  (ruleFailure: RuleFailure): void;
+}
 
 export abstract class AbstractRule implements IRule {
   private options: IOptions;
@@ -27,7 +33,7 @@ export abstract class AbstractRule implements IRule {
     this.options.disabledIntervals = di;
   }
 
-  public abstract apply(sourceFile: ts.SourceFile): RuleFailure[];
+  public abstract apply(sourceFile: ts.SourceFile, hook?: FailureHook): RuleFailure[];
 
   public applyWithWalker(walker: RuleWalker): RuleFailure[] {
     walker.walk(walker.getSourceFile());
@@ -48,4 +54,3 @@ export abstract class AbstractRule implements IRule {
     return false;
   }
 }
-

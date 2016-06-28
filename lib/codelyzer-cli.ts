@@ -54,16 +54,8 @@ function lint(rules: RulesMap, formatter: Formatter, filename: string) {
 async function lintAndRefactor(rules: RulesMap, reporter: Reporter, filename: string) {
   const contents = fs.readFileSync(filename, 'utf8');
   const codelyzer = new Codelyzer(filename, contents, rules);
-  const generator = codelyzer.process();
-  let next: any;
-  next = generator.next(contents);
-  while (!next.done) {
-    let { match } = next.value;
-    let res = await reporter.report(match);
-    let currentRes = generator.next(res.refactoring);
-    fs.writeFileSync(filename, currentRes.value);
-    next = generator.next(currentRes.value);
-  }
+  const result = await codelyzer.process(reporter);
+  fs.writeFileSync(filename, result);
 }
 
 function normalizeConfig(config: ICodelyzerOptionsRaw): ICodelyzerOptions {

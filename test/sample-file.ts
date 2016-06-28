@@ -1,4 +1,4 @@
-import { Input, Output, Component } from '@angular/core';
+import {Input, Output, Component} from '@angular/core';
 
 @Component({
   selector: 'codelyzer-tabs',
@@ -9,11 +9,11 @@ class TabsComponent {
   //...
 }
 
-const bar = 42;
+const bar = 42
 
 var fun = function () {
-  return 42;
-};
+  return 42
+}
 
-
+console.log(42)
 

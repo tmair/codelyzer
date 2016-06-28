@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import {IDisabledInterval, IOptions, Fix, RuleFailure} from '../rule';
+import {IDisabledInterval, IOptions, Fix, RuleFailure, FailureHook} from '../rule';
 import {doesIntersect} from '../utils';
 import {SyntaxWalker} from './syntax-walker';
 
@@ -11,7 +11,7 @@ export class RuleWalker extends SyntaxWalker {
   private disabledIntervals: IDisabledInterval[];
   private ruleName: string;
 
-  constructor(private sourceFile: ts.SourceFile, options: IOptions) {
+  constructor(private sourceFile: ts.SourceFile, options: IOptions, private hook: FailureHook = null) {
     super();
 
     this.position = 0;
@@ -32,6 +32,8 @@ export class RuleWalker extends SyntaxWalker {
   }
 
   public getMatches(): RuleFailure[] {
+    // Temporal workaround
+    this.hook(null);
     return this.matches;
   }
 
@@ -63,7 +65,11 @@ export class RuleWalker extends SyntaxWalker {
 
   public addFailure(match: RuleFailure) {
     if (!this.existsFailure(match) && !doesIntersect(match, this.disabledIntervals)) {
-      this.matches.push(match);
+      if (this.hook) {
+        return this.hook(match);
+      } else {
+        this.matches.push(match);
+      }
     }
   }
 
@@ -71,4 +77,3 @@ export class RuleWalker extends SyntaxWalker {
     return this.matches.some(m => m.equals(match));
   }
 }
-

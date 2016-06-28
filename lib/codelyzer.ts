@@ -1,4 +1,5 @@
 import {RuleFailure, AbstractRule, getSourceFile, Fix, Replacement, IDisabledInterval} from './language';
+import {Reporter} from './reporters/reporter';
 import {EnableDisableRulesWalker} from './enable-disable-rules';
 import {
   ICodelyzerOptionsRaw,
@@ -19,6 +20,8 @@ export interface RulesMap {
 }
 
 export class Codelyzer {
+  private rejectedFixes: RuleFailure[];
+
   constructor(private fileName: string,
       private source: string,
       private rulesMap: RulesMap) {}
@@ -38,37 +41,64 @@ export class Codelyzer {
     return matches;
   }
 
-  public *process(): any {
-    const matches: RuleFailure[] = [];
+  public process(reporter: Reporter) {
     const enabledRules = this.getRules();
-    let sourceFile = getSourceFile(this.fileName, this.source);
-    for (let rule of enabledRules) {
-      // Workaround. Will not work if the fixes have intersection.
-      // In the perfect scenario we need to yiled on each found match.
-      const ruleMatches = this.sortMatches(rule.apply(sourceFile));
-      for (let match of ruleMatches) {
-        if (!this.containsMatch(matches, match)) {
-          let choices = yield { match };
-          let fixes = this.getFixes(match, choices);
-          if (fixes.length > 0) {
-            fixes.forEach(r =>
-              this.source = this.source.slice(0, r.start) + r.replaceWith + this.source.slice(r.end));
-          }
-          yield this.source;
-          sourceFile = getSourceFile(this.fileName, this.source);
-        }
-      }
-    }
+    return this.processRule(reporter, enabledRules, 0);
   }
 
-  private getFixes(match: RuleFailure, choices: string[]) {
-    return match.fixes
-      .filter(f => choices.indexOf(f.description) >= 0)
+  private processRule(reporter: Reporter, rules: AbstractRule[], current: number = 0): Promise<any> {
+    if (current >= rules.length) {
+      return Promise.resolve(this.source);
+    }
+    console.log(current, rules.length);
+    return new Promise((resolve: any) => {
+      this.processHelper(rules[current], reporter)
+        .then(() => {
+          return this.processRule(reporter, rules, 0);
+        }, () => {
+          return this.processRule(reporter, rules, current + 1);
+        }).then(() => {
+          console.log('Done?');
+          resolve(this.source)
+        });
+    });
+  }
+
+  private processHelper(rule: AbstractRule, reporter: Reporter): Promise<any> {
+    return new Promise((resolve: any, reject: any) => {
+      let sourceFile = getSourceFile(this.fileName, this.source);
+      const ruleMatches = rule.apply(sourceFile, (failure: RuleFailure) => {
+        if (failure && !this.failureRejected(failure)) {
+          reporter.report(failure)
+            .then(() => {
+              this.getFixes(failure.fixes).forEach(r =>
+                this.source = this.source.slice(0, r.start) + r.replaceWith + this.source.slice(r.end));
+              resolve(this.source);
+            })
+            .catch(() => {
+              this.rejectedFixes.push(failure);
+              reject(this.source);
+            });
+        } else {
+          resolve(this.source);
+        }
+      });
+    });
+  }
+
+  private failureRejected(failure: RuleFailure) {
+    // Will get tricky to track failures on pieces of
+    // code which have been auto-fixed.
+    return false;
+  }
+
+  private getFixes(fixes: Fix[]) {
+    return fixes
       // Already sorted
       .reduce((accum, f) => accum.concat(f.replacements), []);
   }
 
-  private sortMatches(matches: RuleFailure[]) {
+  private sortFixes(match: RuleFailure) {
     const sortReplacements = (fix: Fix): Fix => {
       fix.replacements = fix.replacements.sort((a, b) => b.start - a.start);
       return fix;
@@ -78,10 +108,8 @@ export class Codelyzer {
       match.fixes = match.fixes.sort((a, b) => b.replacements[0].start - a.replacements[0].start);
       return match;
     };
-    const nofixes = matches.filter((m: RuleFailure) => !m.fixes.length);
-    return nofixes.concat(matches
-      .filter((m: RuleFailure) => m.fixes.length > 0)
-      .sort((a, b) => b.fixes[0].replacements[0].start - a.fixes[0].replacements[0].start));
+    sortFixes(match);
+    return match;
   }
 
   private getRules() {

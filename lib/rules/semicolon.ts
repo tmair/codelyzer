@@ -4,15 +4,15 @@ const OPTION_ALWAYS = 'always';
 const OPTION_NEVER = 'never';
 const OPTION_IGNORE_INTERFACES = 'ignore-interfaces';
 
-import {RuleFailure, AbstractRule, RuleWalker, Fix} from '../language';
+import {RuleFailure, AbstractRule, RuleWalker, Fix, FailureHook} from '../language';
 
 export class Rule extends AbstractRule {
   public static RULE_NAME = 'semicolon';
   public static FAILURE_STRING_MISSING = 'missing semicolon';
   public static FAILURE_STRING_UNNECESSARY = 'unnecessary semicolon';
 
-  public apply(sourceFile: ts.SourceFile): RuleFailure[] {
-    return this.applyWithWalker(new SemicolonWalker(sourceFile, this.getOptions()));
+  public apply(sourceFile: ts.SourceFile, hook: FailureHook): RuleFailure[] {
+    return this.applyWithWalker(new SemicolonWalker(sourceFile, this.getOptions(), hook));
   }
 }
 

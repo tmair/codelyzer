@@ -13,14 +13,9 @@ const getConfirmMessage = (match: RuleFailure, message: string, filename: string
   const showFixes = fixes.length > 0;
   return [
     {
-      type: 'checkbox',
+      type: 'confirm',
       message: message,
       name: 'refactoring',
-      choices: fixes.map(f => {
-        return {
-          name: getFixDescription(f)
-        };
-      })
     }
   ]
 };
@@ -35,8 +30,18 @@ export class DefaultReporter extends Reporter {
       console.log(message);
       return Promise.resolve([]);
     }
-    message += `\n  Which fixes do you want to apply in in file "${filename}":`
-    return inquirer.prompt(getConfirmMessage(match, message, filename));
+    message += `\n  Do you want to apply the following fixes in "${filename}":\n`
+    message += match.fixes.map(f => `\t${f.description}`).join('\n');
+    return new Promise((resolve: any, reject: any) => {
+
+      inquirer.prompt(getConfirmMessage(match, message, filename)).then((res: any) => {
+        if (res.refactoring) {
+          resolve();
+        } else {
+          reject();
+        }
+      });
+    });
   }
 }
 
